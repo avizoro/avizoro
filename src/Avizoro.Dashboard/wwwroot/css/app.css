@@ -149,6 +149,7 @@ a, .btn-link { color: var(--avz-accent); }
     --bs-nav-pills-link-active-bg: #0f766e;
 }
 .form-check-input:checked { background-color: #0f766e; border-color: #0f766e; }
+.progress { --bs-progress-bar-bg: var(--avz-accent-strong); }
 .form-control:focus, .form-select:focus, .form-check-input:focus {
     border-color: var(--avz-accent);
     box-shadow: 0 0 0 .2rem rgba(var(--bs-link-color-rgb), .25);

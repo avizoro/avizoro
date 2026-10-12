@@ -46,7 +46,7 @@ internal static class TempDir
 {
     public static string Create()
     {
-        var dir = Path.Combine(Path.GetTempPath(), "ik-sdk-tests", Guid.NewGuid().ToString("N"));
+        var dir = Path.Combine(Path.GetTempPath(), "avz-sdk-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dir);
         return dir;
     }

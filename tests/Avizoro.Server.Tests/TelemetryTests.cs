@@ -56,15 +56,15 @@ public class ConnectionStringTests
     [Fact]
     public void SqliteDirectory_IsCreated()
     {
-        var dir = Path.Combine(Path.GetTempPath(), "ik-sqlite-" + Guid.NewGuid().ToString("N"), "data");
-        Avizoro.Server.Hosting.ConnectionStrings.EnsureSqliteDirectory($"Data Source={Path.Combine(dir, "ik.db")}");
+        var dir = Path.Combine(Path.GetTempPath(), "avz-sqlite-" + Guid.NewGuid().ToString("N"), "data");
+        Avizoro.Server.Hosting.ConnectionStrings.EnsureSqliteDirectory($"Data Source={Path.Combine(dir, "avz.db")}");
         Assert.True(Directory.Exists(dir));
     }
 
     [Fact]
     public void LegacySqliteFile_IsKept_WhenTheDefaultDoesNotExistYet()
     {
-        var dir = Directory.CreateTempSubdirectory("ik-legacy-").FullName;
+        var dir = Directory.CreateTempSubdirectory("avz-legacy-").FullName;
         var legacy = Path.Combine(dir, "intelligencekit.db");
         File.WriteAllText(legacy, "");
 
@@ -76,7 +76,7 @@ public class ConnectionStringTests
     [Fact]
     public void LegacySqliteFile_IsIgnored_ForOtherNamesOrAnExistingDatabase()
     {
-        var dir = Directory.CreateTempSubdirectory("ik-legacy-").FullName;
+        var dir = Directory.CreateTempSubdirectory("avz-legacy-").FullName;
         File.WriteAllText(Path.Combine(dir, "intelligencekit.db"), "");
 
         var custom = $"Data Source={Path.Combine(dir, "events.db")}";

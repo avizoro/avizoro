@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to IntelligenceKit are documented here. The format is based on
+All notable changes to Avizoro are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -9,10 +9,19 @@ is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stabili
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-10-12
+
+A dashboard-only release: the SDK packages are unchanged and stay at `2.0.0`.
+
+### Changed
+
+- Dashboard: the subtitle under the brand reads "App observability" (was "Runtime intelligence").
+
 ### Fixed
 
-- Dashboard: primary buttons, active filter tabs, checked switches and focus rings used
-  Bootstrap's default blue instead of the teal accent.
+- Dashboard: primary buttons, active filter tabs, checked switches, focus rings and progress bars
+  (release adoption, issue distributions, performance) used Bootstrap's default blue instead of the
+  teal accent.
 
 ## [2.0.0] - 2026-10-12
 
@@ -198,6 +207,7 @@ First stable release. The API is now frozen under SemVer.
   store-and-forward, rich context, last-screen capture, multi-provider backend,
   real-time dashboard, read-side auth and issue grouping.
 
+[2.0.1]: https://github.com/avizoro/avizoro/releases/tag/v2.0.1
 [2.0.0]: https://github.com/avizoro/avizoro/releases/tag/v2.0.0
 [1.1.0]: https://github.com/avizoro/avizoro/releases/tag/v1.1.0
 [1.0.0]: https://github.com/avizoro/avizoro/releases/tag/v1.0.0
