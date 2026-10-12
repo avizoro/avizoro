@@ -19,5 +19,12 @@ public enum EventType
     Session,
 
     /// <summary>User-written feedback about an earlier event (see <see cref="Models.UserFeedback"/>).</summary>
-    Feedback
+    Feedback,
+
+    /// <summary>
+    /// A batch of session timeline entries (<see cref="Models.IntelligenceEvent.Breadcrumbs"/>
+    /// recorded during one session). Sent only with <c>EnableSessionTimeline</c>; the server
+    /// stores them per session instead of creating an issue.
+    /// </summary>
+    Timeline
 }

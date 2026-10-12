@@ -49,6 +49,29 @@ From sessions the server computes:
 
 Set `Release` in the options, or let the SDK use the app version.
 
+The **Sessions** page lists every session with its device, OS, release, duration and errors, and updates live.
+
+## Session timeline
+
+Breadcrumbs normally ride along with an error, so a session without errors leaves no trace. With
+`EnableSessionTimeline = true` the SDK also records the **whole session** and the dashboard shows it as a
+timeline: every screen, user action, HTTP call (method, host/path, status, duration, sizes), log line and
+screenshot, with the session's errors and crashes in place. Open a running session and new steps appear
+as they happen, without refreshing. From an event, **Open session timeline** shows what led up to it.
+
+- Recording rides the same offline queue as events, so the steps before a crash survive it and are
+  delivered on the next launch. Entries are sent in batches (every 5 s, every 50 entries and when the
+  app goes to the background).
+- Everything that enters the breadcrumb trail is recorded, after `BeforeBreadcrumb` and PII scrubbing.
+  Record your own steps with `kit.TrackAction("pay_clicked")` and `kit.TrackScreen("SettingsTab")`.
+- On MAUI, inject `IScreenCapture` and call `CaptureToTimelineAsync()` to add a screenshot of the
+  current screen. Pages in `ScreenCaptureExcludedPages` are never captured.
+- Volume controls: `SessionTimelineMaxEntries` (1000 per session), `SessionTimelineSampleRate`
+  (fraction of sessions recorded) and `SessionTimelineFlushInterval`. The server keeps at most 200
+  entries per batch and 5000 per session, and retention prunes old entries with the rest of the data.
+
+It is **off by default**: it sends more data, and a timeline describes what a user did.
+
 ## ANR detection
 
 A watchdog pings the UI thread. If it doesn't answer within `AnrThreshold` (5 s by default), an `ApplicationNotResponding` event is sent, with the UI thread's stack where the platform allows it. One long freeze is one report. If the whole app was suspended (for example in the background), that round is discarded instead of being reported. This is available in MAUI, WPF, WinForms and Avalonia.

@@ -1,0 +1,32 @@
+@* Session state as shown on the Sessions pages: running (live), exited, crashed or abnormal. *@
+
+<span class="session-status @Css" title="@Title">
+    <span class="session-status-dot"></span>@Label
+</span>
+
+@code {
+    [Parameter, EditorRequired] public SessionSummary Session { get; set; } = default!;
+
+    private string Css => Session.Status switch
+    {
+        "Crashed" => "crashed",
+        "Ok" when Session.IsAbnormal => "abnormal",
+        "Ok" => "running",
+        _ => "exited",
+    };
+
+    private string Label => Css switch
+    {
+        "crashed" => "Crashed",
+        "abnormal" => "Abnormal",
+        "running" => "Running",
+        _ => "Exited",
+    };
+
+    private string Title => Css switch
+    {
+        "abnormal" => "No update for over 24 h: the app was probably killed without reporting",
+        "running" => "The app is in the foreground now",
+        _ => Label,
+    };
+}

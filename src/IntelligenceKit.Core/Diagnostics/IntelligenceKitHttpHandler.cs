@@ -37,18 +37,18 @@ public sealed partial class IntelligenceKitHttpHandler : DelegatingHandler
             var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var status = (int)response.StatusCode;
             span?.Finish(success: status < 500, statusCode: status);
-            Breadcrumb(name, status, watch.Elapsed, error: null);
+            Breadcrumb(name, status, watch.Elapsed, error: null, RequestSize(request), response.Content?.Headers.ContentLength);
             return response;
         }
         catch (Exception ex)
         {
             span?.Finish(success: false);
-            Breadcrumb(name, null, watch.Elapsed, ex.GetType().Name);
+            Breadcrumb(name, null, watch.Elapsed, ex.GetType().Name, RequestSize(request), responseSize: null);
             throw;
         }
     }
 
-    private void Breadcrumb(string name, int? status, TimeSpan elapsed, string? error)
+    private void Breadcrumb(string name, int? status, TimeSpan elapsed, string? error, long? requestSize, long? responseSize)
     {
         try
         {
@@ -57,6 +57,11 @@ public sealed partial class IntelligenceKitHttpHandler : DelegatingHandler
                 data["status_code"] = s.ToString();
             if (error is not null)
                 data["error"] = error;
+            // Sizes come from Content-Length only: bodies are never read.
+            if (requestSize is { } rq)
+                data["request_size"] = rq.ToString();
+            if (responseSize is { } rs)
+                data["response_size"] = rs.ToString();
 
             var level = error is not null || status >= 500 ? SeverityLevel.Error
                 : status >= 400 ? SeverityLevel.Warning
@@ -67,6 +72,18 @@ public sealed partial class IntelligenceKitHttpHandler : DelegatingHandler
         catch
         {
             // Instrumentation must never affect the request.
+        }
+    }
+
+    private static long? RequestSize(HttpRequestMessage request)
+    {
+        try
+        {
+            return request.Content?.Headers.ContentLength;
+        }
+        catch
+        {
+            return null;
         }
     }
 

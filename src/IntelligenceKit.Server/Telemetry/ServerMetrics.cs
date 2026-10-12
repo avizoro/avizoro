@@ -15,6 +15,7 @@ public sealed class ServerMetrics
     private readonly Counter<long> _issuesChanged;
     private readonly Counter<long> _sessionUpdates;
     private readonly Counter<long> _spansIngested;
+    private readonly Counter<long> _timelineEntriesIngested;
     private readonly Counter<long> _alertsDelivered;
     private readonly Histogram<double> _ingestDuration;
 
@@ -26,6 +27,7 @@ public sealed class ServerMetrics
         _issuesChanged = meter.CreateCounter<long>("ik.issues.changed", "{issue}", "Issues created or regressed at ingest.");
         _sessionUpdates = meter.CreateCounter<long>("ik.sessions.updates", "{update}", "Session updates received, by status.");
         _spansIngested = meter.CreateCounter<long>("ik.spans.ingested", "{span}", "Performance spans stored.");
+        _timelineEntriesIngested = meter.CreateCounter<long>("ik.timeline.entries.ingested", "{entry}", "Session timeline entries stored.");
         _alertsDelivered = meter.CreateCounter<long>("ik.alerts.delivered", "{alert}", "Alert deliveries, by channel and outcome.");
         _ingestDuration = meter.CreateHistogram<double>("ik.ingest.duration", "ms", "Time to process one POST /events.");
     }
@@ -40,6 +42,8 @@ public sealed class ServerMetrics
     public void SessionUpdate(string status) => _sessionUpdates.Add(1, new KeyValuePair<string, object?>("status", status));
 
     public void SpansIngested(int count) => _spansIngested.Add(count);
+
+    public void TimelineEntriesIngested(int count) => _timelineEntriesIngested.Add(count);
 
     public void AlertDelivered(string channel, bool success)
         => _alertsDelivered.Add(1, new("channel", channel), new("outcome", success ? "sent" : "failed"));

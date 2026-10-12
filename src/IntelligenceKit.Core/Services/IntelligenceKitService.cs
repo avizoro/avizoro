@@ -20,6 +20,7 @@ public class IntelligenceKitService : IIntelligenceKit
     private readonly ILastScreenProvider _lastScreen;
     private readonly IScreenshotStore _screenshots;
     private readonly ISessionTracker? _sessions;
+    private readonly ISessionTimeline? _timeline;
     private readonly PiiScrubber? _scrubber;
 
     // Mutable per-session scope. This service is a singleton, so these carry
@@ -56,8 +57,28 @@ public class IntelligenceKitService : IIntelligenceKit
         ILastScreenProvider lastScreen,
         IScreenshotStore screenshots,
         ISessionTracker? sessions)
+        : this(store, uploader, options, device, runtime, breadcrumbs, lastScreen, screenshots, sessions, timeline: null)
+    {
+    }
+
+    /// <summary>
+    /// Full constructor with the session timeline. <paramref name="timeline"/> is optional:
+    /// when supplied, pending timeline entries are persisted together with a crash.
+    /// </summary>
+    public IntelligenceKitService(
+        IEventStore store,
+        IEventUploader uploader,
+        IntelligenceOptions options,
+        IDeviceContextProvider device,
+        IRuntimeContextProvider runtime,
+        IBreadcrumbBuffer breadcrumbs,
+        ILastScreenProvider lastScreen,
+        IScreenshotStore screenshots,
+        ISessionTracker? sessions,
+        ISessionTimeline? timeline)
     {
         _sessions = sessions;
+        _timeline = timeline;
         _scrubber = options.EnablePiiScrubbing ? new PiiScrubber(options) : null;
         _store = store;
         _uploader = uploader;
@@ -208,6 +229,7 @@ public class IntelligenceKitService : IIntelligenceKit
         var processed = Process(intelligenceEvent);
         if (processed is null)
         {
+            await PersistTimelineAsync();
             await CloseCrashedSessionAsync();
             return;
         }
@@ -221,9 +243,27 @@ public class IntelligenceKitService : IIntelligenceKit
         await _store.SaveAsync(intelligenceEvent);
         await AttachScreenshotAsync(intelligenceEvent);
 
+        // Keep the timeline leading up to the crash (persist-only, like the crash itself).
+        await PersistTimelineAsync();
+
         // Close the session as crashed (also persist-only), after the crash itself
         // is safely stored.
         await CloseCrashedSessionAsync();
+    }
+
+    private async Task PersistTimelineAsync()
+    {
+        if (_timeline is null)
+            return;
+
+        try
+        {
+            await _timeline.FlushAsync(upload: false);
+        }
+        catch
+        {
+            // Best-effort; the crash event is what matters.
+        }
     }
 
     private async Task CloseCrashedSessionAsync()
@@ -336,6 +376,9 @@ public class IntelligenceKitService : IIntelligenceKit
         intelligenceEvent.Manufacturer = _device.Manufacturer;
         intelligenceEvent.OperatingSystem = _device.OperatingSystem;
 
+        // Place errors and logs on the session timeline.
+        intelligenceEvent.SessionId ??= SafeCurrentSessionId();
+
         // Runtime snapshot + scope.
         intelligenceEvent.DeviceRuntime = SafeCaptureRuntime();
 
@@ -354,6 +397,18 @@ public class IntelligenceKitService : IIntelligenceKit
         // Attach the breadcrumb trail (only if the caller didn't supply one).
         if (intelligenceEvent.Breadcrumbs.Count == 0)
             intelligenceEvent.Breadcrumbs = (scope?.Breadcrumbs() ?? _breadcrumbs.Snapshot()).ToList();
+    }
+
+    private Guid? SafeCurrentSessionId()
+    {
+        try
+        {
+            return _sessions?.Current?.SessionId;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private DeviceRuntime? SafeCaptureRuntime()

@@ -17,6 +17,12 @@ public class AppSession
 
     public string Platform { get; set; } = string.Empty;
 
+    public string DeviceModel { get; set; } = string.Empty;
+
+    public string Manufacturer { get; set; } = string.Empty;
+
+    public string OperatingSystem { get; set; } = string.Empty;
+
     /// <summary>Anonymous installation id.</summary>
     public string DistinctId { get; set; } = string.Empty;
 
@@ -36,4 +42,10 @@ public class AppSession
 
     /// <summary>Sequence of the applied update; older/equal updates are ignored.</summary>
     public long Sequence { get; set; }
+
+    /// <summary>Timeline entries received for this session (only with <c>EnableSessionTimeline</c>).</summary>
+    public int TimelineEntries { get; set; }
+
+    /// <summary>When the latest timeline entry happened on the device.</summary>
+    public DateTime? LastActivity { get; set; }
 }

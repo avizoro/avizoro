@@ -78,6 +78,14 @@ public static class ServiceCollectionExtensions
         if (options.EnableAutoSessionTracking)
             services.TryAddSingleton<ISessionTracker, SessionTracker>();
 
+        // Session timeline (desktop apps): needs sessions; the breadcrumb buffer and the
+        // service pick it up by DI.
+        if (options.EnableSessionTimeline && options.EnableAutoSessionTracking)
+        {
+            services.TryAddSingleton<SessionTimelineRecorder>();
+            services.TryAddSingleton<ISessionTimeline>(sp => sp.GetRequiredService<SessionTimelineRecorder>());
+        }
+
         if (options.EnablePerformanceMonitoring)
             services.TryAddSingleton<IPerformanceMonitor, PerformanceMonitor>();
 

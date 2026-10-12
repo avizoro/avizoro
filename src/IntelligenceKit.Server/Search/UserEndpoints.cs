@@ -60,7 +60,7 @@ public static class UserEndpoints
                     e.Id, e.ProjectId, e.ApplicationName, e.ApplicationVersion,
                     e.Environment, e.Platform, e.DeviceName, e.EventType,
                     e.Level, e.UserId,
-                    e.ExceptionType, e.ExceptionMessage, e.Message, e.Timestamp, e.ReceivedAt))
+                    e.ExceptionType, e.ExceptionMessage, e.Message, e.Timestamp, e.ReceivedAt, e.SessionId))
                 .ToListAsync();
 
             var totalEvents = await events.CountAsync();

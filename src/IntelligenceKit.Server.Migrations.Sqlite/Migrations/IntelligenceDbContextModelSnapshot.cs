@@ -125,6 +125,11 @@ namespace IntelligenceKit.Server.Migrations.Sqlite.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("DeviceModel")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DistinctId")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -139,7 +144,20 @@ namespace IntelligenceKit.Server.Migrations.Sqlite.Migrations
                     b.Property<int>("Errors")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("LastActivity")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("LastUpdate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Manufacturer")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OperatingSystem")
+                        .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Platform")
@@ -164,6 +182,9 @@ namespace IntelligenceKit.Server.Migrations.Sqlite.Migrations
                         .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("TimelineEntries")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("UserId")
                         .HasColumnType("TEXT");
@@ -425,6 +446,9 @@ namespace IntelligenceKit.Server.Migrations.Sqlite.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("TagsJson")
                         .HasColumnType("TEXT");
 
@@ -437,6 +461,8 @@ namespace IntelligenceKit.Server.Migrations.Sqlite.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EventType");
+
+                    b.HasIndex("SessionId");
 
                     b.HasIndex("ProjectId", "Fingerprint");
 
@@ -556,6 +582,60 @@ namespace IntelligenceKit.Server.Migrations.Sqlite.Migrations
                     b.HasIndex("Kind", "Key");
 
                     b.ToTable("Symbols");
+                });
+
+            modelBuilder.Entity("IntelligenceKit.Server.Data.TimelineEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DataJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ReceivedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.HasIndex("ProjectId", "ReceivedAt");
+
+                    b.HasIndex("SessionId", "Sequence");
+
+                    b.ToTable("TimelineEntries");
                 });
 #pragma warning restore 612, 618
         }

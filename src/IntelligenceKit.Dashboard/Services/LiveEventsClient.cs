@@ -28,6 +28,12 @@ public sealed class LiveEventsClient : IAsyncDisposable
     /// <summary>Raised when an issue is created or its count changes.</summary>
     public event Action<IssueSummary>? IssueUpserted;
 
+    /// <summary>Raised when a session starts or changes state (status, duration, timeline count).</summary>
+    public event Action<SessionSummary>? SessionUpdated;
+
+    /// <summary>Raised when new timeline entries of a session arrive (<c>EnableSessionTimeline</c>).</summary>
+    public event Action<TimelinePush>? TimelineReceived;
+
     public HubConnectionState State => _connection?.State ?? HubConnectionState.Disconnected;
 
     /// <summary>Connects if not already connected. Safe to call repeatedly.</summary>
@@ -48,6 +54,8 @@ public sealed class LiveEventsClient : IAsyncDisposable
 
         _connection.On<EventSummary>("eventReceived", summary => EventReceived?.Invoke(summary));
         _connection.On<IssueSummary>("issueUpserted", issue => IssueUpserted?.Invoke(issue));
+        _connection.On<SessionSummary>("sessionUpdated", session => SessionUpdated?.Invoke(session));
+        _connection.On<TimelinePush>("timelineReceived", push => TimelineReceived?.Invoke(push));
 
         await _connection.StartAsync();
     }

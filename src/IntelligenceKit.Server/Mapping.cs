@@ -19,5 +19,39 @@ public static class Mapping
             e.Environment, e.Platform, e.DeviceName, e.EventType,
             e.Level, e.UserId,
             e.ExceptionType, e.ExceptionMessage, e.Message,
-            e.Timestamp, e.ReceivedAt);
+            e.Timestamp, e.ReceivedAt, e.SessionId);
+
+    public static SessionSummary ToSummary(this AppSession s)
+        => new(
+            s.Id, s.ProjectId, s.Status,
+            s.Status == "Ok" && DateTime.UtcNow - s.LastUpdate > Sessions.SessionEndpoints.AbnormalAfter,
+            s.Started, s.LastUpdate, s.LastActivity, s.DurationSeconds, s.Errors, s.TimelineEntries,
+            s.Release, s.Environment, s.Platform, s.DeviceModel, s.Manufacturer, s.OperatingSystem,
+            s.UserId, s.DistinctId);
+
+    public static TimelineItem ToItem(this TimelineEntry e)
+        => new(
+            TimelineItem.EntryKind, e.Id, e.Timestamp, e.Sequence, e.Category, e.Message, e.Level,
+            e.DataJson is null ? null : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(e.DataJson),
+            ScreenshotId: e.Category == IntelligenceKit.Core.Models.BreadcrumbCategories.Screenshot ? e.BatchId : null);
+}
+
+public static class TimelineMapping
+{
+    /// <summary>An error/log event on a session timeline. Sorts after steps with the same timestamp.</summary>
+    public static TimelineItem EventItem(Guid id, DateTime timestamp, string eventType, string? level, string? message, string? exceptionType, string? exceptionMessage)
+        => new(
+            TimelineItem.EventKind, id, timestamp, long.MaxValue,
+            eventType == "Log" ? "log" : "error",
+            exceptionType ?? message ?? eventType,
+            level ?? "Error",
+            Data: null,
+            EventId: id,
+            EventType: eventType,
+            ExceptionType: exceptionType,
+            ExceptionMessage: exceptionMessage,
+            EventMessage: message);
+
+    public static TimelineItem EventItem(this StoredEvent e)
+        => EventItem(e.Id, e.Timestamp, e.EventType, e.Level, e.Message, e.ExceptionType, e.ExceptionMessage);
 }

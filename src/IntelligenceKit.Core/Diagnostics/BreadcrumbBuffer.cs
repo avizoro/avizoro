@@ -1,5 +1,6 @@
 using IntelligenceKit.Core.Configuration;
 using IntelligenceKit.Core.Models;
+using IntelligenceKit.Core.Services;
 
 namespace IntelligenceKit.Core.Diagnostics;
 
@@ -13,11 +14,22 @@ public class BreadcrumbBuffer : IBreadcrumbBuffer
     private readonly LinkedList<Breadcrumb> _items = new();
     private readonly object _lock = new();
     private readonly Func<Breadcrumb, Breadcrumb?>? _beforeBreadcrumb;
+    private readonly ISessionTimeline? _timeline;
 
     public BreadcrumbBuffer(IntelligenceOptions options)
+        : this(options, timeline: null)
+    {
+    }
+
+    /// <summary>
+    /// With a <paramref name="timeline"/>, every breadcrumb that enters the trail is also
+    /// recorded on the current session's timeline (after <c>BeforeBreadcrumb</c>).
+    /// </summary>
+    public BreadcrumbBuffer(IntelligenceOptions options, ISessionTimeline? timeline)
     {
         _capacity = Math.Max(1, options.BreadcrumbCapacity);
         _beforeBreadcrumb = options.BeforeBreadcrumb;
+        _timeline = timeline;
     }
 
     public void Add(Breadcrumb breadcrumb)
@@ -42,6 +54,18 @@ public class BreadcrumbBuffer : IBreadcrumbBuffer
             _items.AddLast(breadcrumb);
             while (_items.Count > _capacity)
                 _items.RemoveFirst();
+        }
+
+        if (_timeline is not null)
+        {
+            try
+            {
+                _timeline.Record(breadcrumb);
+            }
+            catch
+            {
+                // The timeline is best-effort; the trail already has the breadcrumb.
+            }
         }
     }
 

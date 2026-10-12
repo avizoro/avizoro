@@ -130,6 +130,11 @@ namespace IntelligenceKit.Server.Migrations.PostgreSql.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("DeviceModel")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("DistinctId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -144,8 +149,21 @@ namespace IntelligenceKit.Server.Migrations.PostgreSql.Migrations
                     b.Property<int>("Errors")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("LastActivity")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("LastUpdate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Manufacturer")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("OperatingSystem")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Platform")
                         .IsRequired()
@@ -169,6 +187,9 @@ namespace IntelligenceKit.Server.Migrations.PostgreSql.Migrations
                         .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
+
+                    b.Property<int>("TimelineEntries")
+                        .HasColumnType("integer");
 
                     b.Property<string>("UserId")
                         .HasColumnType("text");
@@ -430,6 +451,9 @@ namespace IntelligenceKit.Server.Migrations.PostgreSql.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("TagsJson")
                         .HasColumnType("text");
 
@@ -442,6 +466,8 @@ namespace IntelligenceKit.Server.Migrations.PostgreSql.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EventType");
+
+                    b.HasIndex("SessionId");
 
                     b.HasIndex("ProjectId", "Fingerprint");
 
@@ -561,6 +587,60 @@ namespace IntelligenceKit.Server.Migrations.PostgreSql.Migrations
                     b.HasIndex("Kind", "Key");
 
                     b.ToTable("Symbols");
+                });
+
+            modelBuilder.Entity("IntelligenceKit.Server.Data.TimelineEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("DataJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.HasIndex("ProjectId", "ReceivedAt");
+
+                    b.HasIndex("SessionId", "Sequence");
+
+                    b.ToTable("TimelineEntries");
                 });
 #pragma warning restore 612, 618
         }

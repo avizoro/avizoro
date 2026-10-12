@@ -34,6 +34,7 @@ builder
         o.EnableScreenCapture = true;              // opt-in, downscaled JPEG
         o.ScreenCaptureExcludedPages.Add("LoginPage");
         o.EnableCrashFeedbackPrompt = true;        // ask the user after a crash
+        o.EnableSessionTimeline = true;            // opt-in, every session as a timeline
     });
 
 builder.Services.AddHttpClient("api")
@@ -48,6 +49,8 @@ What the MAUI SDK captures:
 - **Performance**: cold app start, page load per page type, and HTTP requests through the handler.
 - **Breadcrumbs**: navigation, `ILogger` output, HTTP calls and lifecycle events.
 - **Device state**: memory, battery, network and the current screen at the time of the event.
+- **Session timeline** (opt-in): the whole session, not only what led to an error. Add a screenshot of the
+  current screen with `IScreenCapture.CaptureToTimelineAsync()` (inject `IScreenCapture`).
 
 Android, iOS, Mac Catalyst and Windows are supported. Crash capture on iOS and Mac Catalyst covers managed exceptions. Native `NSException` crashes are not captured yet.
 
@@ -177,6 +180,9 @@ These apply to every SDK (`IntelligenceOptions`). The desktop, hosting and ASP.N
 | `EnableCrashReporting` | `true` | Install the platform crash handlers. |
 | `EnableAutoSessionTracking` | `true` | Sessions for crash-free rates. |
 | `SessionTimeout` | 30 s | How long the app can stay in the background before a new session starts. |
+| `EnableSessionTimeline` | `false` | Record every session as a timeline (screens, actions, HTTP, logs, screenshots). Needs session tracking. MAUI and the desktop/hosting SDKs. |
+| `SessionTimelineMaxEntries` / `SessionTimelineSampleRate` | `1000` / `1.0` | Entries recorded per session, and fraction of sessions recorded. |
+| `SessionTimelineFlushInterval` | 5 s | How often recorded entries are queued and sent. |
 | `EnableAnrDetection` / `AnrThreshold` | `true` / 5 s | Report a blocked UI thread. |
 | `EnablePerformanceMonitoring` | `true` | App start, page load and HTTP spans. |
 | `PerformanceSampleRate` | `1.0` | Fraction of spans to keep. |
@@ -202,7 +208,13 @@ void SetUser(string? userId);
 void SetTag(string key, string? value);
 Task CaptureFeedbackAsync(UserFeedback feedback);
 Guid? LastEventId { get; }
+
+// Extension methods (IntelligenceKitExtensions)
+void TrackAction(string action, IDictionary<string, string>? data = null);  // "user" breadcrumb
+void TrackScreen(string screen, IDictionary<string, string>? data = null);  // "navigation" breadcrumb
 ```
+
+Pages are tracked automatically in MAUI; use `TrackScreen` for tabs, popups or custom views.
 
 Inject `IPerformanceMonitor` to time your own operations:
 

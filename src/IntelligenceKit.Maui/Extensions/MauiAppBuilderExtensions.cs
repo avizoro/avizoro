@@ -46,6 +46,14 @@ public static class MauiAppBuilderExtensions
         if (options.EnableAutoSessionTracking)
             builder.Services.AddSingleton<ISessionTracker, SessionTracker>();
 
+        // Session timeline: the whole session's activity, not only the trail attached to
+        // errors. Needs sessions; the breadcrumb buffer and the service pick it up by DI.
+        if (options.EnableSessionTimeline && options.EnableAutoSessionTracking)
+        {
+            builder.Services.AddSingleton<SessionTimelineRecorder>();
+            builder.Services.AddSingleton<ISessionTimeline>(sp => sp.GetRequiredService<SessionTimelineRecorder>());
+        }
+
         // ILogger integration: logs become breadcrumbs (Information+) and events (Error+).
         if (options.EnableLoggingIntegration)
             builder.Logging.AddIntelligenceKit();
@@ -76,6 +84,7 @@ public static class MauiAppBuilderExtensions
         builder.Services.AddSingleton<LastScreenBuffer>();
         builder.Services.AddSingleton<ILastScreenProvider>(sp => sp.GetRequiredService<LastScreenBuffer>());
         builder.Services.AddSingleton<ScreenCaptureService>();
+        builder.Services.AddSingleton<IScreenCapture>(sp => sp.GetRequiredService<ScreenCaptureService>());
 
         // Offline store-and-forward: persist events to SQLite, drain via the uploader.
         var databasePath = Path.Combine(FileSystem.Current.AppDataDirectory, "intelligencekit.db3");
@@ -152,6 +161,7 @@ public static class MauiAppBuilderExtensions
         var services = IPlatformApplication.Current?.Services;
         services?.GetService<UiThreadWatchdog>()?.Pause();
         return Task.WhenAll(
+            services?.GetService<ISessionTimeline>()?.FlushAsync() ?? Task.CompletedTask,
             services?.GetService<ISessionTracker>()?.PauseAsync() ?? Task.CompletedTask,
             services?.GetService<IPerformanceMonitor>()?.FlushAsync() ?? Task.CompletedTask);
     }

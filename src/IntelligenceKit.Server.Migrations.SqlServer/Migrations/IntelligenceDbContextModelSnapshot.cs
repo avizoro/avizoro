@@ -130,6 +130,11 @@ namespace IntelligenceKit.Server.Migrations.SqlServer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("DeviceModel")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("DistinctId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -144,8 +149,21 @@ namespace IntelligenceKit.Server.Migrations.SqlServer.Migrations
                     b.Property<int>("Errors")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("LastActivity")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("LastUpdate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Manufacturer")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("OperatingSystem")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Platform")
                         .IsRequired()
@@ -169,6 +187,9 @@ namespace IntelligenceKit.Server.Migrations.SqlServer.Migrations
                         .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("TimelineEntries")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(max)");
@@ -430,6 +451,9 @@ namespace IntelligenceKit.Server.Migrations.SqlServer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("TagsJson")
                         .HasColumnType("nvarchar(max)");
 
@@ -442,6 +466,8 @@ namespace IntelligenceKit.Server.Migrations.SqlServer.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EventType");
+
+                    b.HasIndex("SessionId");
 
                     b.HasIndex("ProjectId", "Fingerprint");
 
@@ -561,6 +587,60 @@ namespace IntelligenceKit.Server.Migrations.SqlServer.Migrations
                     b.HasIndex("Kind", "Key");
 
                     b.ToTable("Symbols");
+                });
+
+            modelBuilder.Entity("IntelligenceKit.Server.Data.TimelineEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("DataJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ReceivedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.HasIndex("ProjectId", "ReceivedAt");
+
+                    b.HasIndex("SessionId", "Sequence");
+
+                    b.ToTable("TimelineEntries");
                 });
 #pragma warning restore 612, 618
         }
