@@ -1,0 +1,331 @@
+@page "/events"
+@implements IDisposable
+@inject ApiClient Api
+@inject NavigationManager Nav
+@inject LiveEventsClient Live
+@inject AuthState Auth
+
+<PageTitle>Events — Avizoro</PageTitle>
+
+<div class="d-flex align-items-center gap-3 mb-4">
+    <h1 class="page-title">Events</h1>
+    <span class="live-pill @(_live ? "on" : "off")">
+        <span class="live-dot @(_live ? "on" : "")"></span> @(_live ? "Live" : "Offline")
+    </span>
+</div>
+
+<div class="row g-2 align-items-end mb-2">
+    <div class="col-12 col-md-5">
+        <label class="form-label small text-muted mb-1">Search</label>
+        <input class="form-control form-control-sm" placeholder="message, exception type or text…"
+               @bind="_f.Q" @bind:event="oninput" @onkeydown="OnSearchKey" />
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label small text-muted mb-1">Project</label>
+        <input class="form-control form-control-sm" placeholder="all" @bind="_f.ProjectId" />
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label small text-muted mb-1">Event type</label>
+        <select class="form-select form-select-sm" @bind="_f.EventType">
+            <option value="">all</option>
+            <option value="Exception">Exception</option>
+            <option value="Log">Log</option>
+            <option value="Unknown">Unknown</option>
+        </select>
+    </div>
+    <div class="col-4 col-md-1">
+        <button class="btn btn-primary btn-sm w-100" @onclick="ApplyFilters">Apply</button>
+    </div>
+    <div class="col-4 col-md-1">
+        <button class="btn btn-outline-secondary btn-sm w-100" @onclick="ClearFilters">Clear</button>
+    </div>
+    <div class="col-4 col-md-1">
+        <button class="btn btn-link btn-sm w-100 px-0" @onclick="() => _more = !_more">@(_more ? "Less" : "More")</button>
+    </div>
+</div>
+
+@if (_more)
+{
+    <div class="row g-2 align-items-end mb-3">
+        <div class="col-6 col-md-2">
+            <label class="form-label small text-muted mb-1">Level</label>
+            <select class="form-select form-select-sm" @bind="_f.Level">
+                <option value="">any</option>
+                <option>Critical</option>
+                <option>Error</option>
+                <option>Warning</option>
+                <option>Information</option>
+                <option>Debug</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label small text-muted mb-1">Release</label>
+            <input class="form-control form-control-sm" @bind="_f.Release" />
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label small text-muted mb-1">Environment</label>
+            <input class="form-control form-control-sm" @bind="_f.Environment" />
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label small text-muted mb-1">Platform</label>
+            <input class="form-control form-control-sm" placeholder="Android, iOS…" @bind="_f.Platform" />
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label small text-muted mb-1">User id</label>
+            <input class="form-control form-control-sm" @bind="_f.UserId" />
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label small text-muted mb-1">OS contains</label>
+            <input class="form-control form-control-sm" placeholder="Android 14" @bind="_f.OperatingSystem" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label small text-muted mb-1">Device model contains</label>
+            <input class="form-control form-control-sm" @bind="_f.DeviceModel" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label small text-muted mb-1">Tag (key:value)</label>
+            <input class="form-control form-control-sm" placeholder="tenant:acme" @bind="_tag" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label small text-muted mb-1">From</label>
+            <input type="datetime-local" class="form-control form-control-sm" @bind="_f.From" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label small text-muted mb-1">To</label>
+            <input type="datetime-local" class="form-control form-control-sm" @bind="_f.To" />
+        </div>
+    </div>
+}
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_page is null)
+{
+    <p class="text-muted">Loading events…</p>
+}
+else if (_page.Items.Count == 0)
+{
+    <div class="alert alert-info">No events match the current filters.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Received</th>
+                    <th>Type</th>
+                    <th>Env</th>
+                    <th>Project</th>
+                    <th>App</th>
+                    <th>Platform</th>
+                    <th>Device</th>
+                    <th>Summary</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in _page.Items)
+                {
+                    <tr role="button" @onclick="() => Open(e.Id)">
+                        <td class="text-nowrap small">@e.ReceivedAt.ToLocalTime().ToString("g")</td>
+                        <td><span class="badge @BadgeClass(e.EventType)">@e.EventType</span></td>
+                        <td><span class="text-muted small">@e.Environment</span></td>
+                        <td class="text-truncate" style="max-width: 12rem;" title="@e.ProjectId">@e.ProjectId</td>
+                        <td class="text-nowrap">@e.ApplicationName <span class="text-muted small">@e.ApplicationVersion</span></td>
+                        <td>@e.Platform</td>
+                        <td class="text-truncate" style="max-width: 10rem;" title="@e.DeviceName">@e.DeviceName</td>
+                        <td class="text-truncate" style="max-width: 20rem;" title="@(e.ExceptionMessage ?? "")">
+                            @if (e.ExceptionType is not null)
+                            {
+                                <span class="text-danger">@e.ExceptionType</span>
+                                <span class="text-muted">— @e.ExceptionMessage</span>
+                            }
+                            else if (!string.IsNullOrWhiteSpace(e.Message))
+                            {
+                                @if (e.Level is not null)
+                                {
+                                    <span class="text-muted small me-1">[@e.Level]</span>
+                                }
+                                <span>@e.Message</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="text-muted small">
+            Showing @(_skip + 1)–@(_skip + _page.Items.Count) of @_page.Total
+            · export <a href="@ExportUrl("csv")" download>CSV</a> / <a href="@ExportUrl("json")" download>JSON</a>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="Prev" disabled="@(_skip == 0)">Previous</button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="Next" disabled="@(!HasNext)">Next</button>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery] public string? ProjectId { get; set; }
+    [SupplyParameterFromQuery] public string? EventType { get; set; }
+    [SupplyParameterFromQuery] public string? Q { get; set; }
+    [SupplyParameterFromQuery] public string? Level { get; set; }
+    [SupplyParameterFromQuery] public string? Release { get; set; }
+    [SupplyParameterFromQuery] public string? Environment { get; set; }
+    [SupplyParameterFromQuery] public string? Platform { get; set; }
+    [SupplyParameterFromQuery] public string? UserId { get; set; }
+    [SupplyParameterFromQuery] public string? OperatingSystem { get; set; }
+    [SupplyParameterFromQuery] public string? DeviceModel { get; set; }
+    [SupplyParameterFromQuery] public string? Tag { get; set; }
+    [SupplyParameterFromQuery] public DateTime? From { get; set; }
+    [SupplyParameterFromQuery] public DateTime? To { get; set; }
+
+    private const int PageSize = 50;
+
+    private EventFilter _f = new();
+    private string? _tag;
+    private bool _more;
+    private int _skip;
+    private PagedResult<EventSummary>? _page;
+    private string? _error;
+    private bool _live;
+    private bool _subscribed;
+
+    private bool HasNext => _page is not null && _skip + _page.Items.Count < _page.Total;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Connect the live feed once for the lifetime of this page instance.
+        Live.EventReceived += OnLiveEvent;
+        _subscribed = true;
+        try
+        {
+            await Live.EnsureStartedAsync();
+            _live = Live.State == Microsoft.AspNetCore.SignalR.Client.HubConnectionState.Connected;
+        }
+        catch
+        {
+            _live = false; // real-time unavailable; the page still works via polling/refresh
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // React to query-string changes (e.g. arriving from the projects page).
+        _f = new EventFilter
+        {
+            ProjectId = ProjectId, EventType = EventType, Q = Q, Level = Level, Release = Release,
+            Environment = Environment, Platform = Platform, UserId = UserId,
+            OperatingSystem = OperatingSystem, DeviceModel = DeviceModel,
+            Tag = string.IsNullOrWhiteSpace(Tag) ? null : [Tag],
+            From = From?.ToLocalTime(), To = To?.ToLocalTime()
+        };
+        _tag = Tag;
+        _more |= Level is not null || Release is not null || Environment is not null || Platform is not null ||
+                 UserId is not null || OperatingSystem is not null || DeviceModel is not null || Tag is not null ||
+                 From is not null || To is not null;
+        _skip = 0;
+        await LoadAsync();
+    }
+
+    private void OnLiveEvent(EventSummary e)
+    {
+        // Only surface events that belong in the current view: matching filters,
+        // and only while on the first page (so paging stays stable).
+        if (_skip != 0 || _page is null)
+            return;
+        // The live payload is a summary; with detail filters active, wait for a refresh.
+        if (HasDetailFilters)
+            return;
+        if (!string.IsNullOrWhiteSpace(_f.ProjectId) && !string.Equals(e.ProjectId, _f.ProjectId, StringComparison.OrdinalIgnoreCase))
+            return;
+        if (!string.IsNullOrWhiteSpace(_f.EventType) && !string.Equals(e.EventType, _f.EventType, StringComparison.OrdinalIgnoreCase))
+            return;
+        if (_page.Items.Any(i => i.Id == e.Id))
+            return;
+
+        var items = new List<EventSummary> { e };
+        items.AddRange(_page.Items.Take(PageSize - 1));
+        _page = _page with { Total = _page.Total + 1, Items = items };
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (_subscribed)
+            Live.EventReceived -= OnLiveEvent;
+    }
+
+    private async Task LoadAsync()
+    {
+        _error = null;
+        _page = null;
+        try
+        {
+            _page = await Api.GetEventsAsync(_f, _skip, PageSize);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not reach the API: {ex.Message}";
+        }
+    }
+
+    private bool HasDetailFilters =>
+        !string.IsNullOrWhiteSpace(_f.Q) || _f.Level is { Length: > 0 } || _f.Release is { Length: > 0 } ||
+        _f.Environment is { Length: > 0 } || _f.Platform is { Length: > 0 } || _f.UserId is { Length: > 0 } ||
+        _f.OperatingSystem is { Length: > 0 } || _f.DeviceModel is { Length: > 0 } || _f.Tag is { Length: > 0 } ||
+        _f.From is not null || _f.To is not null;
+
+    private void ApplyFilters()
+    {
+        // Push filters into the URL so the view is shareable/bookmarkable.
+        _f.Tag = string.IsNullOrWhiteSpace(_tag) ? null : [_tag.Trim()];
+        var query = _f.ToQueryString();
+        Nav.NavigateTo(query.Length == 0 ? "/events" : $"/events?{query}");
+    }
+
+    /// <summary>Download link for the current filters (a link can't send headers, so the token rides in the query).</summary>
+    private string ExportUrl(string format)
+    {
+        var url = $"{Api.BaseAddress}events/export?format={format}";
+        var query = _f.ToQueryString();
+        if (query.Length > 0)
+            url += "&" + query;
+        return Auth.HasToken ? $"{url}&access_token={Uri.EscapeDataString(Auth.Token!)}" : url;
+    }
+
+    private void OnSearchKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            ApplyFilters();
+    }
+
+    private void ClearFilters() => Nav.NavigateTo("/events");
+
+    private async Task Prev()
+    {
+        _skip = Math.Max(0, _skip - PageSize);
+        await LoadAsync();
+    }
+
+    private async Task Next()
+    {
+        if (!HasNext) return;
+        _skip += PageSize;
+        await LoadAsync();
+    }
+
+    private void Open(Guid id) => Nav.NavigateTo($"/events/{id}");
+
+    private static string BadgeClass(string eventType) => eventType switch
+    {
+        "Exception" => "text-bg-danger",
+        "Log" => "text-bg-secondary",
+        _ => "text-bg-light"
+    };
+}

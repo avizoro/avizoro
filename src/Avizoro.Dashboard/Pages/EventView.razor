@@ -1,0 +1,281 @@
+@page "/events/{Id:guid}"
+@inject ApiClient Api
+@inject NavigationManager Nav
+@inject Avizoro.Dashboard.Services.AuthState Auth
+
+<PageTitle>Event — Avizoro</PageTitle>
+
+<a class="btn btn-link px-0 mb-2" @onclick="GoBack" @onclick:preventDefault href="#">&larr; Back</a>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_notFound)
+{
+    <div class="alert alert-warning">Event not found.</div>
+}
+else if (_event is null)
+{
+    <p class="text-muted">Loading…</p>
+}
+else
+{
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <h1 class="h4 mb-0">Event</h1>
+        <span class="badge @BadgeClass(_event.EventType)">@_event.EventType</span>
+        <span class="text-muted small font-monospace">@_event.Id</span>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_event.Message))
+    {
+        <div class="alert @AlertClass(_event.Level)">@_event.Message</div>
+    }
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">Context</div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        @Field("Project", _event.ProjectId)
+                        @Field("Environment", _event.Environment)
+                        @Field("Release", _event.Release)
+                        @if (!string.IsNullOrWhiteSpace(_event.UserId))
+                        {
+                            <dt class="col-sm-4 text-muted fw-normal">User</dt>
+                            <dd class="col-sm-8"><a href="@($"/users/{Uri.EscapeDataString(_event.UserId)}?projectId={Uri.EscapeDataString(_event.ProjectId)}")">@_event.UserId</a></dd>
+                        }
+                        else
+                        {
+                            @Field("User", null)
+                        }
+                        @if (_event.SessionId is { } sessionId)
+                        {
+                            <dt class="col-sm-4 text-muted fw-normal">Session</dt>
+                            <dd class="col-sm-8"><a href="@($"/sessions/{sessionId}")">Open session timeline &rarr;</a></dd>
+                        }
+                        @Field("Application", $"{_event.ApplicationName} {_event.ApplicationVersion}")
+                        @Field("Platform", _event.Platform)
+                        @Field("Operating system", _event.OperatingSystem)
+                        @Field("Device", _event.DeviceName)
+                        @Field("Model", _event.DeviceModel)
+                        @Field("Manufacturer", _event.Manufacturer)
+                        @Field("Occurred", _event.Timestamp.ToLocalTime().ToString("F"))
+                        @Field("Received", _event.ReceivedAt.ToLocalTime().ToString("F"))
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            @if (_event.DeviceRuntime is { } rt)
+            {
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header">Device state at crash</div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-3">
+                            @Metric("Screen", rt.Screen)
+                            @Metric("Memory", rt.MemoryUsedBytes is { } m ? $"{m / 1024d / 1024d:0} MB" : null)
+                            @Metric("Battery", rt.BatteryLevel is { } b ? $"{b * 100:0}% {rt.BatteryState}" : null)
+                            @Metric("Network", string.IsNullOrWhiteSpace(rt.ConnectionProfiles) ? rt.NetworkAccess : $"{rt.NetworkAccess} ({rt.ConnectionProfiles})")
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (_event.Tags is { Count: > 0 })
+            {
+                <div class="card shadow-sm">
+                    <div class="card-header">Tags</div>
+                    <div class="card-body d-flex flex-wrap gap-2">
+                        @foreach (var tag in _event.Tags)
+                        {
+                            <span class="badge text-bg-light border">@tag.Key: <span class="fw-semibold">@tag.Value</span></span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (_event.HasScreenshot)
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Last screen before the event</span>
+                <span class="text-muted small">click to enlarge</span>
+            </div>
+            <div class="card-body text-center">
+                <img class="screenshot-img" src="@ScreenshotUrl" alt="Last captured screen" loading="lazy"
+                     role="button" @onclick="() => _showScreenshot = true" />
+            </div>
+        </div>
+
+        @if (_showScreenshot)
+        {
+            <div class="screenshot-overlay" @onclick="() => _showScreenshot = false">
+                <img src="@ScreenshotUrl" alt="Last captured screen (full size)" />
+                <button type="button" class="screenshot-close" aria-label="Close">&times;</button>
+            </div>
+        }
+    }
+
+    @if (_event.Breadcrumbs.Count > 0)
+    {
+        <h2 class="h5 mb-2">Breadcrumbs <span class="text-muted fs-6">— what led here</span></h2>
+        <div class="card shadow-sm mb-3">
+            <ul class="list-group list-group-flush breadcrumb-trail">
+                @foreach (var b in _event.Breadcrumbs)
+                {
+                    <li class="list-group-item d-flex align-items-start gap-2">
+                        <span class="badge @CrumbBadge(b.Level) text-uppercase" style="min-width: 6rem;">@b.Category</span>
+                        <div class="flex-grow-1">
+                            <div>@b.Message</div>
+                            @if (b.Data is { Count: > 0 })
+                            {
+                                <div class="text-muted small font-monospace">
+                                    @string.Join(", ", b.Data.Select(d => $"{d.Key}={d.Value}"))
+                                </div>
+                            }
+                        </div>
+                        <span class="text-muted small text-nowrap">@b.Timestamp.ToLocalTime().ToString("HH:mm:ss")</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+
+    <FeedbackList Items="_feedback" />
+
+    @if (_event.Exception is not null)
+    {
+        <h2 class="h5 mb-2">
+            Exception
+            @if (_event.Symbolicated)
+            {
+                <span class="badge text-bg-info fs-6 align-middle" title="File/line or Java names recovered from uploaded debug symbols">symbolicated</span>
+            }
+        </h2>
+        var level = 0;
+        var ex = _event.Exception;
+        while (ex is not null)
+        {
+            <div class="card shadow-sm mb-2 border-danger-subtle">
+                <div class="card-body">
+                    @if (level > 0)
+                    {
+                        <div class="text-muted small mb-1">Inner exception (level @level)</div>
+                    }
+                    <div class="fw-semibold text-danger">@ex.Type</div>
+                    <div class="mb-2">@ex.Message</div>
+                    @if (!string.IsNullOrWhiteSpace(ex.Source))
+                    {
+                        <div class="text-muted small mb-2">Source: @ex.Source</div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(ex.StackTrace))
+                    {
+                        <pre class="stacktrace mb-0"><code>@ex.StackTrace</code></pre>
+                    }
+                </div>
+            </div>
+            ex = ex.InnerException;
+            level++;
+        }
+    }
+
+    @if (_event.Data is { Count: > 0 })
+    {
+        <h2 class="h5 mb-2 mt-3">Data</h2>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tbody>
+                    @foreach (var kv in _event.Data)
+                    {
+                        <tr>
+                            <th class="text-nowrap" style="width: 12rem;">@kv.Key</th>
+                            <td class="font-monospace small">@kv.Value.ToString()</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private EventDetail? _event;
+    private bool _notFound;
+    private bool _showScreenshot;
+    private string? _error;
+    private IReadOnlyList<FeedbackInfo>? _feedback;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _error = null;
+        _notFound = false;
+        _showScreenshot = false;
+        _event = null;
+        _feedback = null;
+        try
+        {
+            _event = await Api.GetEventAsync(Id);
+            _notFound = _event is null;
+            _feedback = _event is null ? null : await Api.GetEventFeedbackAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not reach the API: {ex.Message}";
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/events");
+
+    private string ScreenshotUrl
+    {
+        // An <img> can't send an Authorization header, so the token rides as a
+        // query parameter (the server accepts access_token for this reason).
+        get
+        {
+            var url = $"{Api.BaseAddress}events/{Id}/screenshot";
+            return Auth.HasToken
+                ? $"{url}?access_token={Uri.EscapeDataString(Auth.Token!)}"
+                : url;
+        }
+    }
+
+    private RenderFragment Field(string label, string? value) =>@<text>
+        <dt class="col-sm-4 text-muted fw-normal">@label</dt>
+        <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(value) ? "—" : value)</dd>
+    </text>;
+
+    private RenderFragment Metric(string label, string? value) =>@<text>
+        <div>
+            <div class="text-muted small text-uppercase">@label</div>
+            <div class="fs-6 fw-semibold">@(string.IsNullOrWhiteSpace(value) ? "—" : value)</div>
+        </div>
+    </text>;
+
+    private static string BadgeClass(string eventType) => eventType switch
+    {
+        "Exception" => "text-bg-danger",
+        "Log" => "text-bg-secondary",
+        _ => "text-bg-light"
+    };
+
+    private static string AlertClass(string? level) => level switch
+    {
+        "Critical" or "Error" => "alert-danger",
+        "Warning" => "alert-warning",
+        _ => "alert-secondary"
+    };
+
+    private static string CrumbBadge(SeverityLevel level) => level switch
+    {
+        SeverityLevel.Critical or SeverityLevel.Error => "text-bg-danger",
+        SeverityLevel.Warning => "text-bg-warning",
+        _ => "text-bg-secondary"
+    };
+}

@@ -1,0 +1,85 @@
+@page "/users/{UserId}"
+@inject ApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>User @UserId — Avizoro</PageTitle>
+
+<h1 class="page-title mb-1">User <code>@UserId</code></h1>
+<p class="text-muted mb-4">Everything this user ran into (from the opt-in <code>SetUser</code> id).</p>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_timeline is null)
+{
+    <p class="text-muted">Loading…</p>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="stat-tile"><div class="stat-label">Events</div><div class="stat-value">@_timeline.TotalEvents</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-tile"><div class="stat-label">Issues</div><div class="stat-value">@_timeline.Issues.Count</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-tile"><div class="stat-label">Sessions</div><div class="stat-value">@_timeline.Sessions</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-tile"><div class="stat-label">Crashed sessions</div><div class="stat-value @(_timeline.CrashedSessions > 0 ? "danger" : "")">@_timeline.CrashedSessions</div></div></div>
+    </div>
+
+    @if (_timeline.Issues.Count > 0)
+    {
+        <h2 class="h6">Issues</h2>
+        <div class="list-group mb-4">
+            @foreach (var i in _timeline.Issues)
+            {
+                <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="@($"/issues/{i.Id}")">
+                    <span>
+                        <span class="fw-semibold text-danger">@i.Title</span>
+                        <span class="text-muted small ms-2">@i.Culprit</span>
+                    </span>
+                    <IssueStatusBadge Issue="i" />
+                </a>
+            }
+        </div>
+    }
+
+    <h2 class="h6">Timeline</h2>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead><tr><th>When</th><th>Type</th><th>App</th><th>Platform</th><th>Summary</th></tr></thead>
+            <tbody>
+                @foreach (var e in _timeline.Events)
+                {
+                    <tr role="button" @onclick="@(() => Nav.NavigateTo($"/events/{e.Id}"))">
+                        <td class="small text-nowrap">@e.ReceivedAt.ToLocalTime().ToString("g")</td>
+                        <td><span class="badge text-bg-light border">@e.EventType</span></td>
+                        <td class="text-nowrap">@e.ApplicationName <span class="text-muted small">@e.ApplicationVersion</span></td>
+                        <td>@e.Platform</td>
+                        <td class="text-truncate" style="max-width: 26rem">@(e.ExceptionType is null ? e.Message : $"{e.ExceptionType}: {e.ExceptionMessage}")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter] public string UserId { get; set; } = "";
+
+    [SupplyParameterFromQuery] public string? ProjectId { get; set; }
+
+    private UserTimeline? _timeline;
+    private string? _error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _timeline = null;
+        _error = null;
+        try
+        {
+            _timeline = await Api.GetUserTimelineAsync(UserId, ProjectId);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not reach the API: {ex.Message}";
+        }
+    }
+}

@@ -1,4 +1,4 @@
-title: IntelligenceKit
+title: Avizoro
 description: Self-hosted crash reporting, performance and release health for .NET and MAUI apps.
 remote_theme: just-the-docs/just-the-docs@v0.10.1
 plugins:
@@ -11,13 +11,13 @@ heading_anchors: true
 logo: /images/icon.png
 
 aux_links:
-  GitHub: https://github.com/wilsonvargas/IntelligenceKit
-  NuGet: https://www.nuget.org/packages?q=IntelligenceKit
+  GitHub: https://github.com/wilsonvargas/Avizoro
+  NuGet: https://www.nuget.org/packages?q=Avizoro
 aux_links_new_tab: true
 
 gh_edit_link: true
 gh_edit_link_text: Edit this page on GitHub
-gh_edit_repository: https://github.com/wilsonvargas/IntelligenceKit
+gh_edit_repository: https://github.com/wilsonvargas/Avizoro
 gh_edit_branch: master
 gh_edit_source: docs
 gh_edit_view_mode: tree
@@ -26,4 +26,4 @@ relative_links:
   enabled: true
   collections: false
 
-footer_content: IntelligenceKit is MIT licensed.
+footer_content: Avizoro is MIT licensed.

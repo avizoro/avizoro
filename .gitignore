@@ -23,7 +23,7 @@ mono_crash.*
 [Rr]elease/
 [Rr]eleases/
 # ...but not the server's Releases feature folder (release-health endpoints).
-!src/IntelligenceKit.Server/Releases/
+!src/Avizoro.Server/Releases/
 
 [Dd]ebug/x64/
 [Dd]ebugPublic/x64/
@@ -431,12 +431,12 @@ FodyWeavers.xsd
 *.msp
 
 # ---------------------------------------------------------------------------
-# IntelligenceKit project-specific
+# Avizoro project-specific
 # ---------------------------------------------------------------------------
 
 # Internal working docs (not part of the published OSS project)
 CLAUDE.md
-IntelligenceKit_Context.md
+Avizoro_Context.md
 
 # Claude Code local settings
 .claude/

@@ -1,0 +1,150 @@
+<Project>
+
+  <!--
+    Avizoro symbol upload. Opt-in: set AvizoroUploadSymbols=true
+    (typically only for Release/CI builds). After the build it uploads the app's
+    assemblies + portable PDBs (and, on Android, the R8 mapping.txt) to
+    POST {AvizoroServerUrl}/symbols so release stack traces get file:line
+    and deobfuscated Java frames in the dashboard.
+
+      <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <AvizoroUploadSymbols>true</AvizoroUploadSymbols>
+        <AvizoroServerUrl>https://avizoro.example.com</AvizoroServerUrl>
+        <AvizoroProjectId>my-app</AvizoroProjectId>
+      </PropertyGroup>
+
+    The admin token comes from AvizoroAdminToken or the AVIZORO_ADMIN_TOKEN
+    environment variable (keep it out of source control). Uploading never fails
+    the build: problems are reported as warnings.
+  -->
+  <PropertyGroup>
+    <AvizoroUploadSymbols Condition="'$(AvizoroUploadSymbols)' == ''">false</AvizoroUploadSymbols>
+    <AvizoroAdminToken Condition="'$(AvizoroAdminToken)' == ''">$(AVIZORO_ADMIN_TOKEN)</AvizoroAdminToken>
+    <AvizoroRelease Condition="'$(AvizoroRelease)' == ''">$(ApplicationDisplayVersion)</AvizoroRelease>
+    <AvizoroRelease Condition="'$(AvizoroRelease)' == ''">$(Version)</AvizoroRelease>
+    <AvizoroAndroidMappingFile Condition="'$(AvizoroAndroidMappingFile)' == ''">$(AndroidProguardMappingFile)</AvizoroAndroidMappingFile>
+  </PropertyGroup>
+
+  <UsingTask TaskName="AvizoroUploadSymbolsTask"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <ServerUrl ParameterType="System.String" Required="true" />
+      <Token ParameterType="System.String" Required="true" />
+      <SearchDirectories ParameterType="System.String[]" Required="true" />
+      <AssemblyNames ParameterType="System.String[]" Required="true" />
+      <MappingFile ParameterType="System.String" />
+      <ProjectId ParameterType="System.String" />
+      <Release ParameterType="System.String" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Net.Http" />
+      <Using Namespace="System.Net.Http.Headers" />
+      <Using Namespace="System.Security.Cryptography" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        try
+        {
+            var names = new HashSet<string>(AssemblyNames.Where(n => !string.IsNullOrWhiteSpace(n)), StringComparer.OrdinalIgnoreCase);
+            var seen = new HashSet<string>();
+            var files = new List<string>();
+
+            // Every copy of the app's assemblies that has a PDB next to it: the plain
+            // build output AND trimmed/linked copies (trimming changes the MVID, so
+            // the device may report either).
+            foreach (var dir in SearchDirectories.Where(Directory.Exists))
+            {
+                foreach (var dll in Directory.EnumerateFiles(dir, "*.dll", SearchOption.AllDirectories))
+                {
+                    if (!names.Contains(Path.GetFileNameWithoutExtension(dll)))
+                        continue;
+                    var pdb = Path.ChangeExtension(dll, ".pdb");
+                    if (!File.Exists(pdb))
+                        continue;
+
+                    string hash;
+                    using (var sha = SHA256.Create())
+                    using (var stream = File.OpenRead(dll))
+                        hash = Convert.ToBase64String(sha.ComputeHash(stream));
+                    if (!seen.Add(hash))
+                        continue;
+
+                    files.Add(dll);
+                    files.Add(pdb);
+                }
+            }
+
+            var hasMapping = !string.IsNullOrWhiteSpace(MappingFile) && File.Exists(MappingFile);
+            if (files.Count == 0 && !hasMapping)
+            {
+                Log.LogMessage(MessageImportance.High, "Avizoro: no symbols found to upload.");
+                return true;
+            }
+
+            using (var form = new MultipartFormDataContent())
+            {
+                foreach (var file in files)
+                {
+                    var content = new ByteArrayContent(File.ReadAllBytes(file));
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                    form.Add(content, "files", Path.GetFileName(file));
+                }
+                if (hasMapping)
+                    form.Add(new ByteArrayContent(File.ReadAllBytes(MappingFile)), "files", "mapping.txt");
+                if (!string.IsNullOrWhiteSpace(ProjectId))
+                    form.Add(new StringContent(ProjectId), "projectId");
+                if (!string.IsNullOrWhiteSpace(Release))
+                    form.Add(new StringContent(Release), "release");
+
+                using (var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) })
+                {
+                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+                    var response = http.PostAsync(ServerUrl.TrimEnd('/') + "/symbols", form).GetAwaiter().GetResult();
+                    var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    if (response.IsSuccessStatusCode)
+                        Log.LogMessage(MessageImportance.High, "Avizoro: uploaded " + (files.Count / 2) + " assembly/PDB pair(s)" + (hasMapping ? " and mapping.txt" : "") + ". Server: " + body);
+                    else
+                        Log.LogWarning("Avizoro: symbol upload failed ({0}): {1}", (int)response.StatusCode, body);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning("Avizoro: symbol upload failed: {0}", ex.Message);
+        }
+        return true;
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="AvizoroUploadSymbols"
+          AfterTargets="Build;Publish"
+          Condition="'$(AvizoroUploadSymbols)' == 'true' and '$(_AvizoroSymbolsUploaded)' != 'true'">
+
+    <Warning Condition="'$(AvizoroServerUrl)' == ''" Text="Avizoro: set AvizoroServerUrl to upload symbols." />
+    <Warning Condition="'$(AvizoroAdminToken)' == ''" Text="Avizoro: set AvizoroAdminToken (or the AVIZORO_ADMIN_TOKEN environment variable) to upload symbols." />
+
+    <ItemGroup>
+      <_AvizoroAssemblyName Include="$(TargetName)" />
+      <_AvizoroAssemblyName Include="@(_ResolvedProjectReferencePaths->'%(Filename)')" />
+    </ItemGroup>
+
+    <AvizoroUploadSymbolsTask
+        Condition="'$(AvizoroServerUrl)' != '' and '$(AvizoroAdminToken)' != ''"
+        ServerUrl="$(AvizoroServerUrl)"
+        Token="$(AvizoroAdminToken)"
+        SearchDirectories="$(ProjectDir)$(IntermediateOutputPath);$(ProjectDir)$(OutDir)"
+        AssemblyNames="@(_AvizoroAssemblyName)"
+        MappingFile="$(AvizoroAndroidMappingFile)"
+        ProjectId="$(AvizoroProjectId)"
+        Release="$(AvizoroRelease)" />
+
+    <PropertyGroup>
+      <_AvizoroSymbolsUploaded>true</_AvizoroSymbolsUploaded>
+    </PropertyGroup>
+  </Target>
+
+</Project>

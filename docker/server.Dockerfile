@@ -1,4 +1,4 @@
-# IntelligenceKit ingest/query backend.
+# Avizoro ingest/query backend.
 # Build context is the repository root: docker build -f docker/server.Dockerfile .
 
 # ---- build ----------------------------------------------------------------
@@ -11,8 +11,8 @@ WORKDIR /src
 # assemblies (referenced by the Server project), so runtime Migrate() works for
 # whichever provider is configured.
 COPY src/ src/
-RUN dotnet restore src/IntelligenceKit.Server/IntelligenceKit.Server.csproj
-RUN dotnet publish src/IntelligenceKit.Server/IntelligenceKit.Server.csproj \
+RUN dotnet restore src/Avizoro.Server/Avizoro.Server.csproj
+RUN dotnet publish src/Avizoro.Server/Avizoro.Server.csproj \
     -c Release -o /app/publish --no-restore
 
 # ---- runtime --------------------------------------------------------------
@@ -20,9 +20,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish ./
 
-LABEL org.opencontainers.image.title="IntelligenceKit Server" \
-      org.opencontainers.image.description="Self-hosted ingest/query backend for IntelligenceKit (crash reporting & observability for .NET)." \
-      org.opencontainers.image.source="https://github.com/wilsonvargas/IntelligenceKit" \
+LABEL org.opencontainers.image.title="Avizoro Server" \
+      org.opencontainers.image.description="Self-hosted ingest/query backend for Avizoro (crash reporting & observability for .NET)." \
+      org.opencontainers.image.source="https://github.com/wilsonvargas/Avizoro" \
       org.opencontainers.image.licenses="MIT"
 
 # Listens on $PORT (default 7099, the project's http profile). PaaS platforms
@@ -32,4 +32,4 @@ ENV PORT=7099 \
     DOTNET_gcServer=1
 
 EXPOSE 7099
-ENTRYPOINT ["sh", "-c", "ASPNETCORE_URLS=\"${ASPNETCORE_URLS:-http://+:${PORT}}\" exec dotnet IntelligenceKit.Server.dll"]
+ENTRYPOINT ["sh", "-c", "ASPNETCORE_URLS=\"${ASPNETCORE_URLS:-http://+:${PORT}}\" exec dotnet Avizoro.Server.dll"]

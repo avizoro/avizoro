@@ -27,7 +27,7 @@ A new event on a **resolved** issue reopens it and flags it as a **regression**.
 To group events your own way, set a fingerprint on the event. `{{ default }}` stands for the normal grouping:
 
 ```csharp
-await kit.TrackAsync(new IntelligenceEvent
+await kit.TrackAsync(new AvizoroEvent
 {
     EventType = EventType.Exception,
     Exception = ExceptionInfo.FromException(ex),
@@ -82,7 +82,7 @@ A watchdog pings the UI thread. If it doesn't answer within `AnrThreshold` (5 s 
 |---|---|
 | `app.start` | MAUI: process start to the first page on screen (cold start). |
 | `ui.load` | MAUI: each page, from navigation to appearing. |
-| `http.client` | `AddIntelligenceKitHandler()` on an `HttpClient`. |
+| `http.client` | `AddAvizoroHandler()` on an `HttpClient`. |
 | `http.server` | ASP.NET Core: each request, by route template. |
 | your own | `IPerformanceMonitor.StartSpan(operation, name)` |
 
@@ -96,13 +96,13 @@ Add this to the app's project file:
 
 ```xml
 <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-  <IntelligenceKitUploadSymbols>true</IntelligenceKitUploadSymbols>
-  <IntelligenceKitServerUrl>https://ik.example.com</IntelligenceKitServerUrl>
-  <IntelligenceKitProjectId>my-app</IntelligenceKitProjectId>
+  <AvizoroUploadSymbols>true</AvizoroUploadSymbols>
+  <AvizoroServerUrl>https://avizoro.example.com</AvizoroServerUrl>
+  <AvizoroProjectId>my-app</AvizoroProjectId>
 </PropertyGroup>
 ```
 
-Provide the admin token as the `IK_ADMIN_TOKEN` environment variable (or `IntelligenceKitAdminToken`), not in source control. After the build, the target uploads the assemblies, portable PDBs and the Android `mapping.txt`. It never fails the build: problems are reported as warnings.
+Provide the admin token as the `AVIZORO_ADMIN_TOKEN` environment variable (or `AvizoroAdminToken`), not in source control. After the build, the target uploads the assemblies, portable PDBs and the Android `mapping.txt`. It never fails the build: problems are reported as warnings.
 
 - .NET frames are matched by the assembly's **MVID**, so they always resolve against the exact build.
 - ProGuard/R8 mappings are matched by project and release.
@@ -125,7 +125,7 @@ Channels are `Webhook`, `Slack`, `Teams`, `Discord` and `Email` (SMTP under `Ale
 Generic webhooks receive JSON. When the rule has a secret, the body is signed:
 
 ```
-X-IntelligenceKit-Signature: sha256=<hex HMAC-SHA256 of the raw body>
+X-Avizoro-Signature: sha256=<hex HMAC-SHA256 of the raw body>
 ```
 
 Set `Alerts:DashboardUrl` so alerts link to the issue.

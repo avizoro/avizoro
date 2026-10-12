@@ -1,4 +1,4 @@
-# Deploying IntelligenceKit
+# Deploying Avizoro
 
 Every option runs the same two images, which are built by
 [`.github/workflows/docker.yml`](../.github/workflows/docker.yml) and published to
@@ -6,8 +6,8 @@ GitHub Container Registry:
 
 | Image | Port | Key settings |
 |---|---|---|
-| `ghcr.io/wilsonvargas/intelligencekit-server` | `$PORT` (default 7099) | `Auth__ReadToken`, `Database__Provider`, `ConnectionStrings__Events` (or `DATABASE_URL`) |
-| `ghcr.io/wilsonvargas/intelligencekit-dashboard` | `$PORT` (default 80) | `API_BASE_URL`, the server URL **as the browser reaches it** |
+| `ghcr.io/wilsonvargas/avizoro-server` | `$PORT` (default 7099) | `Auth__ReadToken`, `Database__Provider`, `ConnectionStrings__Events` (or `DATABASE_URL`) |
+| `ghcr.io/wilsonvargas/avizoro-dashboard` | `$PORT` (default 80) | `API_BASE_URL`, the server URL **as the browser reaches it** |
 
 Tags: `latest` (default branch), `1.2.3` / `1.2` (releases), `sha-<commit>`.
 
@@ -18,7 +18,7 @@ Tags: `latest` (default branch), `1.2.3` / `1.2` (releases), `sha-<commit>`.
 ## Docker Compose (any VM)
 
 ```bash
-cp .env.example .env         # set IK_READ_TOKEN (and API_BASE_URL for a remote host)
+cp .env.example .env         # set AVIZORO_READ_TOKEN (and API_BASE_URL for a remote host)
 docker compose pull && docker compose up -d
 ```
 
@@ -27,23 +27,23 @@ to build from source instead.
 
 ## Render: one click, with managed PostgreSQL
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/wilsonvargas/IntelligenceKit)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/wilsonvargas/Avizoro)
 
-The [`render.yaml`](../render.yaml) Blueprint creates `ik-db` (PostgreSQL),
-`ik-server` and `ik-dashboard`. Render asks for two values:
+The [`render.yaml`](../render.yaml) Blueprint creates `avizoro-db` (PostgreSQL),
+`avizoro-server` and `avizoro-dashboard`. Render asks for two values:
 
-- `API_BASE_URL` (dashboard): the public URL of `ik-server`, for example
-  `https://ik-server.onrender.com`.
-- `Alerts__DashboardUrl` (server): the public URL of `ik-dashboard`. It is used for
+- `API_BASE_URL` (dashboard): the public URL of `avizoro-server`, for example
+  `https://avizoro-server.onrender.com`.
+- `Alerts__DashboardUrl` (server): the public URL of `avizoro-dashboard`. It is used for
   links in alerts and in GitHub/Jira issues.
 
 Service URLs are `https://<name>.onrender.com`, unless Render adds a suffix. You
 can fix either value later in the service's *Environment* tab. The admin token is
-generated for you: copy `Auth__ReadToken` from `ik-server` → *Environment*.
+generated for you: copy `Auth__ReadToken` from `avizoro-server` → *Environment*.
 
 ## Azure App Service
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwilsonvargas%2FIntelligenceKit%2Fmaster%2Fdeploy%2Fazure%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwilsonvargas%2FAvizoro%2Fmaster%2Fdeploy%2Fazure%2Fazuredeploy.json)
 
 [`azure/azuredeploy.json`](azure/azuredeploy.json) creates a Linux App Service
 plan with two container apps: `<prefix>-server` and `<prefix>-dashboard`. The

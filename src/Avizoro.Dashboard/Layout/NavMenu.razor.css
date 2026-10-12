@@ -1,0 +1,2 @@
+/* Navigation styling now lives in wwwroot/css/app.css (.avz-brand / .avz-nav),
+   so the shell can share tokens with the rest of the dashboard. */

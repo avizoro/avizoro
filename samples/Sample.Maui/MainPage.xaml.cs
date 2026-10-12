@@ -1,10 +1,10 @@
-using IntelligenceKit.Core.Configuration;
-using IntelligenceKit.Core.Diagnostics;
-using IntelligenceKit.Core.Enums;
-using IntelligenceKit.Core.Models;
-using IntelligenceKit.Core.Services;
-using IntelligenceKit.Core.Storage;
-using IntelligenceKit.Maui.Diagnostics;
+using Avizoro.Core.Configuration;
+using Avizoro.Core.Diagnostics;
+using Avizoro.Core.Enums;
+using Avizoro.Core.Models;
+using Avizoro.Core.Services;
+using Avizoro.Core.Storage;
+using Avizoro.Maui.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Sample.Maui
@@ -21,9 +21,9 @@ namespace Sample.Maui
 
         private async void OnTrackEventClicked(object? sender, EventArgs e)
         {
-            var kit = Services.GetRequiredService<IIntelligenceKit>();
+            var kit = Services.GetRequiredService<IAvizoro>();
 
-            var intelligenceEvent = new IntelligenceEvent
+            var avizoroEvent = new AvizoroEvent
             {
                 EventType = EventType.Log,
                 Data =
@@ -33,13 +33,13 @@ namespace Sample.Maui
                 }
             };
 
-            await kit.TrackAsync(intelligenceEvent);
+            await kit.TrackAsync(avizoroEvent);
             await ShowQueueAsync("Evento normal encolado y enviado.");
         }
 
         private async void OnTrackExceptionClicked(object? sender, EventArgs e)
         {
-            var kit = Services.GetRequiredService<IIntelligenceKit>();
+            var kit = Services.GetRequiredService<IAvizoro>();
 
             try
             {
@@ -72,7 +72,7 @@ namespace Sample.Maui
 
         private void OnSetUserClicked(object? sender, EventArgs e)
         {
-            var kit = Services.GetRequiredService<IIntelligenceKit>();
+            var kit = Services.GetRequiredService<IAvizoro>();
             kit.SetUser($"anonymous-{Random.Shared.Next(10000, 99999)}");
             kit.SetTag("plan", "premium");
             StatusLabel.Text = "Usuario y tag asociados a los próximos eventos.";
@@ -82,7 +82,7 @@ namespace Sample.Maui
 
         private void OnAddBreadcrumbClicked(object? sender, EventArgs e)
         {
-            var kit = Services.GetRequiredService<IIntelligenceKit>();
+            var kit = Services.GetRequiredService<IAvizoro>();
             _breadcrumbCount++;
             kit.AddBreadcrumb(
                 $"Tap on demo action #{_breadcrumbCount}",
@@ -95,7 +95,7 @@ namespace Sample.Maui
 
         private void OnTrackActionClicked(object? sender, EventArgs e)
         {
-            var kit = Services.GetRequiredService<IIntelligenceKit>();
+            var kit = Services.GetRequiredService<IAvizoro>();
             _actionCount++;
             kit.TrackAction("demo_button_clicked", new Dictionary<string, string> { ["count"] = _actionCount.ToString() });
             StatusLabel.Text = $"Acción #{_actionCount} registrada (aparece en la timeline de la sesión).";
@@ -106,9 +106,9 @@ namespace Sample.Maui
 
         private async void OnHttpClicked(object? sender, EventArgs e)
         {
-            var kit = Services.GetRequiredService<IIntelligenceKit>();
-            var server = Services.GetRequiredService<IntelligenceOptions>().ServerUrl;
-            _http ??= new HttpClient(new IntelligenceKitHttpHandler(kit) { InnerHandler = new HttpClientHandler() })
+            var kit = Services.GetRequiredService<IAvizoro>();
+            var server = Services.GetRequiredService<AvizoroOptions>().ServerUrl;
+            _http ??= new HttpClient(new AvizoroHttpHandler(kit) { InnerHandler = new HttpClientHandler() })
             {
                 Timeout = TimeSpan.FromSeconds(10)
             };
@@ -134,7 +134,7 @@ namespace Sample.Maui
 
         private async void OnLogClicked(object? sender, EventArgs e)
         {
-            var kit = Services.GetRequiredService<IIntelligenceKit>();
+            var kit = Services.GetRequiredService<IAvizoro>();
             await kit.TrackLogAsync(SeverityLevel.Warning, "Token de pago vacío",
                 new Dictionary<string, string> { ["service"] = "PaymentService" });
             await ShowQueueAsync("Log (warning) registrado.");

@@ -2,7 +2,7 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "metadata": {
-    "description": "IntelligenceKit on Azure App Service (Linux containers): the server (SQLite on persistent /home storage) and the dashboard, from the prebuilt GHCR images."
+    "description": "Avizoro on Azure App Service (Linux containers): the server (SQLite on persistent /home storage) and the dashboard, from the prebuilt GHCR images."
   },
   "parameters": {
     "namePrefix": {
@@ -19,7 +19,7 @@
     "imageTag": {
       "type": "string",
       "defaultValue": "latest",
-      "metadata": { "description": "Tag of ghcr.io/wilsonvargas/intelligencekit-{server,dashboard}." }
+      "metadata": { "description": "Tag of ghcr.io/wilsonvargas/avizoro-{server,dashboard}." }
     },
     "sku": {
       "type": "string",
@@ -60,7 +60,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('planName'))]",
         "httpsOnly": true,
         "siteConfig": {
-          "linuxFxVersion": "[concat('DOCKER|ghcr.io/wilsonvargas/intelligencekit-server:', parameters('imageTag'))]",
+          "linuxFxVersion": "[concat('DOCKER|ghcr.io/wilsonvargas/avizoro-server:', parameters('imageTag'))]",
           "alwaysOn": true,
           "healthCheckPath": "/health/ready",
           "appSettings": [
@@ -68,7 +68,7 @@
             { "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE", "value": "true" },
             { "name": "DOCKER_REGISTRY_SERVER_URL", "value": "https://ghcr.io" },
             { "name": "Database__Provider", "value": "Sqlite" },
-            { "name": "ConnectionStrings__Events", "value": "Data Source=/home/data/intelligencekit.db" },
+            { "name": "ConnectionStrings__Events", "value": "Data Source=/home/data/avizoro.db" },
             { "name": "Auth__ReadToken", "value": "[parameters('adminToken')]" },
             { "name": "Alerts__DashboardUrl", "value": "[variables('dashboardUrl')]" }
           ]
@@ -86,7 +86,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('planName'))]",
         "httpsOnly": true,
         "siteConfig": {
-          "linuxFxVersion": "[concat('DOCKER|ghcr.io/wilsonvargas/intelligencekit-dashboard:', parameters('imageTag'))]",
+          "linuxFxVersion": "[concat('DOCKER|ghcr.io/wilsonvargas/avizoro-dashboard:', parameters('imageTag'))]",
           "appSettings": [
             { "name": "WEBSITES_PORT", "value": "80" },
             { "name": "DOCKER_REGISTRY_SERVER_URL", "value": "https://ghcr.io" },

@@ -24,4 +24,4 @@ EOF
 # freshly written plaintext, not a stale build-time copy.
 rm -f "${ROOT}/appsettings.json.br" "${ROOT}/appsettings.json.gz"
 
-echo "[ik-dashboard] ApiBaseUrl set to ${API_BASE_URL}"
+echo "[avizoro-dashboard] ApiBaseUrl set to ${API_BASE_URL}"

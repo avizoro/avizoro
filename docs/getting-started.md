@@ -11,12 +11,12 @@ nav_order: 2
 
 ## Try the demo
 
-The quickest way to see IntelligenceKit is the demo stack. It seeds two weeks of sample data (a shop app with three releases, a regression, an ANR, slow endpoints and user feedback) and runs read-only:
+The quickest way to see Avizoro is the demo stack. It seeds two weeks of sample data (a shop app with three releases, a regression, an ANR, slow endpoints and user feedback) and runs read-only:
 
 ```bash
-git clone https://github.com/wilsonvargas/IntelligenceKit
-cd IntelligenceKit
-IK_READ_TOKEN=demo docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+git clone https://github.com/wilsonvargas/Avizoro
+cd Avizoro
+AVIZORO_READ_TOKEN=demo docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 ```
 
 Open **http://localhost:8080** and sign in with the token `demo`.
@@ -24,8 +24,8 @@ Open **http://localhost:8080** and sign in with the token `demo`.
 Without Docker, run the server with the same settings from source:
 
 ```bash
-Demo__Seed=true Auth__ReadToken=demo dotnet run --project src/IntelligenceKit.Server
-dotnet run --project src/IntelligenceKit.Dashboard      # http://localhost:5292
+Demo__Seed=true Auth__ReadToken=demo dotnet run --project src/Avizoro.Server
+dotnet run --project src/Avizoro.Dashboard      # http://localhost:5292
 ```
 
 Seeding only runs on an **empty** database, so it never touches real data.
@@ -35,7 +35,7 @@ Seeding only runs on an **empty** database, so it never touches real data.
 With Docker (PostgreSQL + server + dashboard):
 
 ```bash
-cp .env.example .env        # set IK_READ_TOKEN to a long random value
+cp .env.example .env        # set AVIZORO_READ_TOKEN to a long random value
 docker compose up -d
 ```
 
@@ -45,11 +45,11 @@ docker compose up -d
 From source, with SQLite and no setup:
 
 ```bash
-dotnet run --project src/IntelligenceKit.Server        # http://0.0.0.0:7099
-dotnet run --project src/IntelligenceKit.Dashboard     # http://localhost:5292
+dotnet run --project src/Avizoro.Server        # http://0.0.0.0:7099
+dotnet run --project src/Avizoro.Dashboard     # http://localhost:5292
 ```
 
-The server creates and migrates its database on startup. To run on a cloud host, see [Deploying](https://github.com/wilsonvargas/IntelligenceKit/blob/master/deploy/README.md).
+The server creates and migrates its database on startup. To run on a cloud host, see [Deploying](https://github.com/wilsonvargas/Avizoro/blob/master/deploy/README.md).
 
 ## 2. Create a project
 
@@ -74,14 +74,14 @@ curl -X POST http://localhost:7099/admin/projects \
 For a MAUI app:
 
 ```bash
-dotnet add package IntelligenceKit.Maui
+dotnet add package Avizoro.Maui
 ```
 
 ```csharp
 // MauiProgram.cs
 builder
     .UseMauiApp<App>()
-    .UseIntelligenceKit("http://projectKey@10.0.2.2:7099/my-app", o =>
+    .UseAvizoro("http://projectKey@10.0.2.2:7099/my-app", o =>
     {
         o.Environment = "staging";
     });
@@ -94,10 +94,10 @@ That one call sets up crash capture, the offline queue, sessions, ANR detection,
 
 ## 4. Send an event
 
-Crashes are captured automatically. To report something yourself, inject `IIntelligenceKit`:
+Crashes are captured automatically. To report something yourself, inject `IAvizoro`:
 
 ```csharp
-public class CheckoutViewModel(IIntelligenceKit kit)
+public class CheckoutViewModel(IAvizoro kit)
 {
     async Task PayAsync()
     {

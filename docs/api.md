@@ -118,11 +118,11 @@ The SignalR hub at `/hubs/events` (read auth, `?access_token=` for WebSockets) p
 
 ```bash
 # Unresolved issues in 2.4.0, newest first
-curl -H "Authorization: Bearer $IK_TOKEN" \
-  "https://ik.example.com/issues?projectId=my-app&status=Unresolved&release=2.4.0"
+curl -H "Authorization: Bearer $AVIZORO_TOKEN" \
+  "https://avizoro.example.com/issues?projectId=my-app&status=Unresolved&release=2.4.0"
 
 # Resolve one in the next release
-curl -X PATCH -H "Authorization: Bearer $IK_TOKEN" -H "Content-Type: application/json" \
+curl -X PATCH -H "Authorization: Bearer $AVIZORO_TOKEN" -H "Content-Type: application/json" \
   -d '{ "status": "Resolved", "resolvedInRelease": "2.4.1" }' \
-  "https://ik.example.com/issues/$ISSUE_ID"
+  "https://avizoro.example.com/issues/$ISSUE_ID"
 ```

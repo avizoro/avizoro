@@ -2,8 +2,8 @@ name: Docker images
 
 # Builds the server and dashboard images for linux/amd64 + linux/arm64 and
 # publishes them to GitHub Container Registry:
-#   ghcr.io/<owner>/intelligencekit-server
-#   ghcr.io/<owner>/intelligencekit-dashboard
+#   ghcr.io/<owner>/avizoro-server
+#   ghcr.io/<owner>/avizoro-dashboard
 # Tags: `latest` + `master` from the default branch, `1.2.3` / `1.2` from v* tags,
 # and `sha-<short>` for every build. Pull requests build but don't push.
 on:
@@ -53,7 +53,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/intelligencekit-${{ matrix.image }}
+          images: ghcr.io/${{ github.repository_owner }}/avizoro-${{ matrix.image }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
