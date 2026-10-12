@@ -45,6 +45,23 @@ public class DemoTests : IDisposable
     }
 
     [Fact]
+    public async Task DemoSeed_IncludesSessionTimelines_WithACrashOnOne()
+    {
+        var authed = _factory.CreateAuthorizedClient();
+
+        var sessions = await authed.GetFromJsonAsync<JsonElement>("/sessions?projectId=demo-shop&withTimeline=true&take=50");
+        var items = sessions.GetProperty("items").EnumerateArray().ToList();
+        Assert.NotEmpty(items);
+        Assert.All(items, s => Assert.False(string.IsNullOrEmpty(s.GetProperty("deviceModel").GetString())));
+
+        var crashed = items.First(s => s.GetProperty("status").GetString() == "Crashed").GetProperty("id").GetGuid();
+        var timeline = await authed.GetFromJsonAsync<JsonElement>($"/sessions/{crashed}/timeline");
+        var last = timeline.GetProperty("items").EnumerateArray().Last();
+        Assert.Equal("event", last.GetProperty("kind").GetString());
+        Assert.Equal("System.NullReferenceException", last.GetProperty("exceptionType").GetString());
+    }
+
+    [Fact]
     public async Task ReadOnly_RejectsWrites_ButServesReads()
     {
         var authed = _factory.CreateAuthorizedClient();

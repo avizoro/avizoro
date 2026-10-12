@@ -26,6 +26,10 @@ namespace Sample.Maui
                     // (Off by default because screenshots can contain personal data.)
                     options.EnableScreenCapture = true;
 
+                    // Opt-in: record every session as a timeline (screens, actions, HTTP,
+                    // logs, screenshots) and watch it live on the dashboard's Sessions page.
+                    options.EnableSessionTimeline = true;
+
                     // After a crash, ask on next launch what the user was doing.
                     options.EnableCrashFeedbackPrompt = true;
                     options.CrashFeedbackTitle = "La app se cerró inesperadamente";

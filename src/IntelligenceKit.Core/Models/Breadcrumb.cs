@@ -32,4 +32,7 @@ public static class BreadcrumbCategories
     public const string Http = "http";
     public const string System = "system";
     public const string Custom = "custom";
+
+    /// <summary>A screenshot taken on demand; only appears on session timelines.</summary>
+    public const string Screenshot = "screenshot";
 }

@@ -1,6 +1,7 @@
 using IntelligenceKit.Core.Enums;
 using IntelligenceKit.Core.Models;
 using IntelligenceKit.Server.Data;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntelligenceKit.Server.Sessions;
@@ -13,8 +14,15 @@ namespace IntelligenceKit.Server.Sessions;
 public sealed class SessionIngestor
 {
     private readonly IntelligenceDbContext _db;
+    private readonly IHubContext<EventsHub> _hub;
+    private readonly ILogger<SessionIngestor> _logger;
 
-    public SessionIngestor(IntelligenceDbContext db) => _db = db;
+    public SessionIngestor(IntelligenceDbContext db, IHubContext<EventsHub> hub, ILogger<SessionIngestor> logger)
+    {
+        _db = db;
+        _hub = hub;
+        _logger = logger;
+    }
 
     public async Task IngestAsync(IntelligenceEvent e, CancellationToken ct = default)
     {
@@ -41,6 +49,9 @@ public sealed class SessionIngestor
         session.Release = e.Release;
         session.Environment = e.Environment;
         session.Platform = e.Platform;
+        session.DeviceModel = Truncate(e.DeviceModel);
+        session.Manufacturer = Truncate(e.Manufacturer);
+        session.OperatingSystem = Truncate(e.OperatingSystem);
         session.DistinctId = update.DistinctId;
         session.UserId = e.UserId;
         session.Status = status.ToString();
@@ -58,6 +69,20 @@ public sealed class SessionIngestor
             // Two first updates of the same session raced on insert; the other one
             // won. Session updates are retried by the SDK only on failure, and the
             // next lifecycle update will carry the newer state anyway.
+            return;
+        }
+
+        // Live Sessions page. Best-effort: the update is already stored.
+        try
+        {
+            await _hub.Clients.Groups("admins", $"project:{session.ProjectId}").SendAsync("sessionUpdated", session.ToSummary(), ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Failed to push session {SessionId}.", session.Id);
         }
     }
+
+    private static string Truncate(string? value)
+        => string.IsNullOrEmpty(value) ? string.Empty : value.Length <= 200 ? value : value[..200];
 }

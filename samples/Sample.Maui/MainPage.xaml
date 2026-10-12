@@ -67,6 +67,30 @@
                 HorizontalOptions="Fill" />
 
             <Button
+                x:Name="TrackActionBtn"
+                AutomationId="TrackActionBtn"
+                Text="Registrar acción (TrackAction)"
+                SemanticProperties.Hint="Registra una acción del usuario en la timeline de la sesión"
+                Clicked="OnTrackActionClicked"
+                HorizontalOptions="Fill" />
+
+            <Button
+                x:Name="HttpBtn"
+                AutomationId="HttpBtn"
+                Text="Hacer llamada HTTP"
+                SemanticProperties.Hint="Llama al servidor con un HttpClient instrumentado"
+                Clicked="OnHttpClicked"
+                HorizontalOptions="Fill" />
+
+            <Button
+                x:Name="ScreenshotBtn"
+                AutomationId="ScreenshotBtn"
+                Text="Capturar pantalla a la timeline"
+                SemanticProperties.Hint="Agrega una captura de pantalla a la timeline de la sesión"
+                Clicked="OnScreenshotClicked"
+                HorizontalOptions="Fill" />
+
+            <Button
                 x:Name="LogBtn"
                 Text="Registrar log (warning)"
                 SemanticProperties.Hint="Envía un evento de log y deja breadcrumb"

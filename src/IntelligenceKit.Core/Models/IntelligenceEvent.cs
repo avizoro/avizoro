@@ -73,4 +73,16 @@ public class IntelligenceEvent
 
     /// <summary>Only set on <see cref="EventType.Feedback"/> events.</summary>
     public UserFeedback? Feedback { get; set; }
+
+    /// <summary>
+    /// The session this event happened in, when session tracking is on. Lets the server
+    /// place errors and logs on the session timeline.
+    /// </summary>
+    public Guid? SessionId { get; set; }
+
+    /// <summary>
+    /// Only set on <see cref="EventType.Timeline"/> events: the per-session sequence number of
+    /// the first entry in <see cref="Breadcrumbs"/> (the rest follow contiguously).
+    /// </summary>
+    public long? TimelineSequence { get; set; }
 }

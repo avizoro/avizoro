@@ -22,7 +22,8 @@ public record EventSummary(
     string? ExceptionMessage,
     string? Message,
     DateTime Timestamp,
-    DateTime ReceivedAt);
+    DateTime ReceivedAt,
+    Guid? SessionId = null);
 
 /// <summary>One hour of the events-per-hour time series.</summary>
 public record TimeBucket(DateTime Start, int Total, int Exceptions);
@@ -120,7 +121,8 @@ public record EventDetail(
     bool HasScreenshot,
     DateTime Timestamp,
     DateTime ReceivedAt,
-    bool Symbolicated = false);
+    bool Symbolicated = false,
+    Guid? SessionId = null);
 
 /// <summary>An alert rule as returned by the API. <c>HasSecret</c> hides the signing key itself.</summary>
 public record AlertRuleInfo(
@@ -316,3 +318,71 @@ public record IntegrationsInfo(bool GitHub, bool GitHubCreatesViaApi, bool Jira)
 /// form the user submits (GitHub without a token); <c>Created</c>: it was created now.
 /// </summary>
 public record ExternalIssueResult(string Url, bool Created, bool Prefilled);
+
+/// <summary>A session as listed on the Sessions page (release-health row plus device and timeline counts).</summary>
+public record SessionSummary(
+    Guid Id,
+    string ProjectId,
+    string Status,
+    bool IsAbnormal,
+    DateTime Started,
+    DateTime LastUpdate,
+    DateTime? LastActivity,
+    double DurationSeconds,
+    int Errors,
+    int TimelineEntries,
+    string Release,
+    string Environment,
+    string Platform,
+    string DeviceModel,
+    string Manufacturer,
+    string OperatingSystem,
+    string? UserId,
+    string DistinctId);
+
+/// <summary>
+/// One row of a session timeline: either a recorded step (<see cref="Kind"/> "entry": navigation,
+/// user action, HTTP call, log, screenshot…) or an error/log event captured in the session ("event").
+/// </summary>
+public record TimelineItem(
+    string Kind,
+    Guid Id,
+    DateTime Timestamp,
+    long Sequence,
+    string Category,
+    string Message,
+    string Level,
+    IReadOnlyDictionary<string, string>? Data,
+    Guid? EventId = null,
+    string? EventType = null,
+    string? ExceptionType = null,
+    string? ExceptionMessage = null,
+    Guid? ScreenshotId = null,
+    string? EventMessage = null)
+{
+    public const string EntryKind = "entry";
+    public const string EventKind = "event";
+
+    private static readonly TimeSpan SameLogWindow = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// True when <paramref name="entry"/> is the log breadcrumb recorded by the same call that captured
+    /// <paramref name="evt"/> (<c>TrackLogAsync</c> and the ILogger provider produce both). The timeline
+    /// keeps only the event, which links to its details.
+    /// </summary>
+    public static bool IsSameLog(TimelineItem entry, TimelineItem evt)
+    {
+        if (entry.Kind != EntryKind || entry.Category != "log" || evt.Kind != EventKind || evt.EventMessage is not { Length: > 0 } message)
+            return false;
+
+        // Timeline messages are truncated at ingest; compare the same prefix.
+        var comparable = message.Length > entry.Message.Length && entry.Message.Length >= 1000 ? message[..entry.Message.Length] : message;
+        return entry.Message == comparable && (entry.Timestamp - evt.Timestamp).Duration() <= SameLogWindow;
+    }
+}
+
+/// <summary>A session and its merged, chronological timeline.</summary>
+public record SessionTimelineResult(SessionSummary Session, IReadOnlyList<TimelineItem> Items, bool Truncated);
+
+/// <summary>SignalR "timelineReceived" payload: new items of one session.</summary>
+public record TimelinePush(Guid SessionId, string ProjectId, IReadOnlyList<TimelineItem> Items);

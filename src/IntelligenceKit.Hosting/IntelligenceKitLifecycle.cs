@@ -47,6 +47,8 @@ public sealed class IntelligenceKitLifecycle
 
         try
         {
+            if (_services.GetService<ISessionTimeline>() is { } timeline)
+                await timeline.FlushAsync(upload: false).WaitAsync(timeout.Token).ConfigureAwait(false);
             if (_services.GetService<ISessionTracker>() is { } sessions)
                 await sessions.EndAsync().WaitAsync(timeout.Token).ConfigureAwait(false);
             if (_services.GetService<IPerformanceMonitor>() is { } performance)

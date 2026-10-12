@@ -67,6 +67,9 @@ public sealed class DemoSeeder
     private readonly IssueBackfill _backfill;
     private readonly Random _random = new(42);
 
+    // Separate stream for the timeline stories, so adding them doesn't reshuffle the rest of the demo data.
+    private readonly Random _stories = new(7);
+
     public DemoSeeder(IntelligenceDbContext db, IssueBackfill backfill)
     {
         _db = db;
@@ -97,6 +100,7 @@ public sealed class DemoSeeder
         SeedSessions(now);
         var crashIds = SeedEvents(now);
         SeedSpans(now);
+        SeedTimelines(now);
         await _db.SaveChangesAsync(ct);
         _db.ChangeTracker.Clear();
 
@@ -203,6 +207,9 @@ public sealed class DemoSeeder
                     Release = release,
                     Environment = "production",
                     Platform = device.Platform,
+                    DeviceModel = device.Model,
+                    Manufacturer = device.Maker,
+                    OperatingSystem = device.Os,
                     DistinctId = "install-" + user,
                     UserId = _random.NextDouble() < 0.7 ? user : null,
                     Started = started,
@@ -214,6 +221,99 @@ public sealed class DemoSeeder
                 });
             }
         }
+    }
+
+    /// <summary>
+    /// The most recent sessions recorded a timeline (<c>EnableSessionTimeline</c>): a shopper browsing,
+    /// adding to the cart and paying. One of them crashes on "Pay", with the crash on its timeline.
+    /// </summary>
+    private void SeedTimelines(DateTime now)
+    {
+        var recent = _db.Sessions.Local
+            .Where(s => s.Started > now.AddDays(-1))
+            .OrderByDescending(s => s.Started)
+            .Take(12)
+            .ToList();
+
+        for (var i = 0; i < recent.Count; i++)
+        {
+            var session = recent[i];
+            var crash = i == 1;
+            if (crash)
+            {
+                session.Status = "Crashed";
+                session.Errors = Math.Max(1, session.Errors);
+            }
+            SeedTimeline(session, crash);
+        }
+    }
+
+    private void SeedTimeline(AppSession session, bool crash)
+    {
+        var at = session.Started;
+        var sequence = 0L;
+        var batch = Guid.NewGuid();
+        var product = _stories.Next(100, 999);
+
+        void Step(string category, string message, string level = "Information", Dictionary<string, string>? data = null)
+        {
+            at = at.AddMilliseconds(_stories.Next(700, 6000));
+            if (sequence > 0 && sequence % 10 == 0)
+                batch = Guid.NewGuid();
+            _db.TimelineEntries.Add(new TimelineEntry
+            {
+                Id = Guid.NewGuid(), ProjectId = ProjectId, SessionId = session.Id, BatchId = batch,
+                Sequence = sequence++, Timestamp = at, Category = category, Message = message, Level = level,
+                DataJson = data is null ? null : JsonSerializer.Serialize(data), ReceivedAt = at.AddSeconds(3),
+            });
+        }
+
+        void Http(string method, string path, int status, int ms)
+            => Step("http", $"{method} api.demo-shop.io{path}", status >= 500 ? "Error" : "Information",
+                new() { ["status_code"] = status.ToString(), ["duration_ms"] = ms.ToString(), ["response_size"] = _stories.Next(400, 9000).ToString() });
+
+        Step("navigation", "HomePage");
+        Http("GET", "/catalog", 200, _stories.Next(120, 400));
+        Step("navigation", "CatalogPage");
+        Step("user", "product_tapped", data: new() { ["product"] = $"sku-{product}" });
+        Step("navigation", "ProductPage");
+        Http("GET", "/products/{id}", 200, _stories.Next(90, 300));
+        Step("user", "add_to_cart_clicked");
+        Step("navigation", "CartPage");
+        Step("log", "Cart total recalculated", data: new() { ["items"] = _stories.Next(1, 5).ToString() });
+        Step("user", "pay_clicked");
+
+        if (crash)
+        {
+            Http("POST", "/payments/authorize", 502, 2412);
+            Step("log", "Payment gateway returned 502, retrying with saved card", "Warning");
+            at = at.AddMilliseconds(400);
+            var problem = Problems[0]; // the CartPage.OnPayClicked NullReferenceException
+            _db.Events.Add(new StoredEvent
+            {
+                Id = Guid.NewGuid(), ProjectId = ProjectId, ProjectKey = "demo-key",
+                ApplicationName = "Demo Shop", ApplicationVersion = session.Release, Release = session.Release,
+                Environment = session.Environment, Platform = session.Platform, DeviceName = session.DeviceModel,
+                DeviceModel = session.DeviceModel, Manufacturer = session.Manufacturer, OperatingSystem = session.OperatingSystem,
+                UserId = session.UserId, SessionId = session.Id, EventType = "Exception", Level = "Error",
+                ExceptionType = problem.Type, ExceptionMessage = problem.Message,
+                ExceptionJson = JsonSerializer.Serialize(new ExceptionInfo { Type = problem.Type, Message = problem.Message, StackTrace = problem.Stack }),
+                Fingerprint = "", Timestamp = at, ReceivedAt = at.AddSeconds(20),
+            });
+        }
+        else
+        {
+            Http("POST", "/payments/authorize", 200, _stories.Next(300, 900));
+            Step("navigation", "CheckoutPage");
+            Step("user", "confirm_order_clicked");
+            Http("POST", "/orders", 201, _stories.Next(150, 500));
+            Step("navigation", "OrderConfirmationPage");
+        }
+
+        session.TimelineEntries = (int)sequence;
+        session.LastActivity = at;
+        if (session.LastUpdate < at)
+            session.LastUpdate = at;
     }
 
     private void SeedSpans(DateTime now)

@@ -20,7 +20,7 @@ The dashboard uses this API, and you can too, for scripts, reports and integrati
 
 | Method | Path | Auth | |
 |---|---|---|---|
-| `POST` | `/events` | open | Ingest one event. Idempotent by event `id`. Sessions, performance spans and feedback use the same endpoint with their own `eventType`. |
+| `POST` | `/events` | open | Ingest one event. Idempotent by event `id`. Sessions, session timeline batches, performance spans and feedback use the same endpoint with their own `eventType`. |
 | `POST` | `/events/{id}/screenshot` | open | Screenshot for an event (JPEG, up to 2 MB). |
 
 ## Issues
@@ -56,6 +56,14 @@ The dashboard uses this API, and you can too, for scripts, reports and integrati
 | `GET` | `/stats/events-per-hour` | read | |
 | `GET` | `/releases` | read | `projectId`, `environment`, `days` (default 30) |
 | `GET` | `/performance` | read | `projectId`, `operation`, `release`, `environment`, `days` (default 7) |
+
+## Sessions
+
+| Method | Path | Auth | |
+|---|---|---|---|
+| `GET` | `/sessions` | read | `projectId`, `environment`, `release`, `status` (`Ok`, `Exited`, `Crashed`), `userId`, `withTimeline`, `skip`, `take`. Newest first. |
+| `GET` | `/sessions/{id}` | read | One session. |
+| `GET` | `/sessions/{id}/timeline` | read | The session's recorded steps and its errors, in order (at most 5000 steps). Screenshot steps carry a `screenshotId` for `GET /events/{id}/screenshot`. |
 
 ## Users and feedback
 
@@ -104,7 +112,7 @@ The dashboard uses this API, and you can too, for scripts, reports and integrati
 
 ## Live updates
 
-The SignalR hub at `/hubs/events` (read auth, `?access_token=` for WebSockets) pushes `eventReceived` and `issueUpserted` messages.
+The SignalR hub at `/hubs/events` (read auth, `?access_token=` for WebSockets) pushes `eventReceived`, `issueUpserted`, `sessionUpdated` (a session started or changed) and `timelineReceived` (new timeline steps of a session) messages.
 
 ## Example
 

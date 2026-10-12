@@ -1,5 +1,6 @@
 using System.Linq;
 using IntelligenceKit.Core.Configuration;
+using IntelligenceKit.Core.Services;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
@@ -9,26 +10,78 @@ using Microsoft.Maui.Media;
 namespace IntelligenceKit.Maui.Diagnostics;
 
 /// <summary>
+/// Takes a screenshot on demand and adds it to the current session timeline.
+/// Resolve it from DI (e.g. inject <c>IScreenCapture</c> in a page or view model).
+/// </summary>
+public interface IScreenCapture
+{
+    /// <summary>
+    /// Captures the current screen (downscaled JPEG) and records it on the session timeline.
+    /// Returns false when nothing was recorded: timeline off, no session, an excluded page,
+    /// or the platform couldn't capture.
+    /// </summary>
+    Task<bool> CaptureToTimelineAsync();
+}
+
+/// <summary>
 /// Proactively captures a downscaled screenshot and keeps only the latest frame
 /// in <see cref="LastScreenBuffer"/>, so a crash can carry "the last screen the
 /// user saw" without ever capturing on the dying thread. Opt-in and throttled;
-/// sensitive pages are skipped.
+/// sensitive pages are skipped. Also takes on-demand screenshots for the session
+/// timeline (<see cref="IScreenCapture"/>).
 /// </summary>
-public sealed class ScreenCaptureService
+public sealed class ScreenCaptureService : IScreenCapture
 {
     private static readonly TimeSpan MinInterval = TimeSpan.FromMilliseconds(800);
 
     private readonly LastScreenBuffer _buffer;
     private readonly IntelligenceOptions _options;
+    private readonly ISessionTimeline? _timeline;
 
     private DateTime _lastCaptureUtc = DateTime.MinValue;
     private bool _started;
 
     public ScreenCaptureService(LastScreenBuffer buffer, IntelligenceOptions options)
+        : this(buffer, options, timeline: null)
+    {
+    }
+
+    public ScreenCaptureService(LastScreenBuffer buffer, IntelligenceOptions options, ISessionTimeline? timeline)
     {
         _buffer = buffer;
         _options = options;
+        _timeline = timeline;
     }
+
+    public async Task<bool> CaptureToTimelineAsync()
+    {
+        if (_timeline is null)
+            return false;
+
+        try
+        {
+            var screen = CurrentPageName();
+            if (IsExcluded(screen))
+                return false;
+
+            var (jpeg, error) = await CaptureFrameAsync();
+            if (jpeg is not { Length: > 0 })
+            {
+                Log($"timeline screenshot failed on {screen}: {error ?? "no data"}");
+                return false;
+            }
+
+            return await _timeline.RecordScreenshotAsync(jpeg, screen);
+        }
+        catch
+        {
+            // A screenshot must never crash the app.
+            return false;
+        }
+    }
+
+    private bool IsExcluded(string screen)
+        => !string.IsNullOrEmpty(screen) && _options.ScreenCaptureExcludedPages.Contains(screen);
 
     public void Start()
     {
@@ -110,7 +163,7 @@ public sealed class ScreenCaptureService
             return;
 
         // Never keep a frame of a sensitive screen.
-        if (!string.IsNullOrEmpty(screen) && _options.ScreenCaptureExcludedPages.Contains(screen))
+        if (IsExcluded(screen))
         {
             _buffer.Clear();
             return;
@@ -119,6 +172,23 @@ public sealed class ScreenCaptureService
         if (!force && DateTime.UtcNow - _lastCaptureUtc < MinInterval)
             return;
 
+        var (jpeg, error) = await CaptureFrameAsync();
+
+        if (jpeg is { Length: > 0 })
+        {
+            _buffer.Update(jpeg);
+            _lastCaptureUtc = DateTime.UtcNow;
+            Log($"screenshot captured: {jpeg.Length} bytes on {screen}");
+        }
+        else
+        {
+            Log($"screenshot capture failed on {screen}: {error ?? "no data"}");
+        }
+    }
+
+    /// <summary>One downscaled JPEG of the current screen, or the reason it failed.</summary>
+    private async Task<(byte[]? Jpeg, string? Error)> CaptureFrameAsync()
+    {
         // The capture runs on the UI thread. CRUCIAL: the try/catch must live
         // INSIDE the main-thread delegate and return null on failure — an
         // exception thrown here would otherwise escape across the thread boundary
@@ -164,16 +234,7 @@ public sealed class ScreenCaptureService
             error = $"{ex.GetType().Name}: {ex.Message}";
         }
 
-        if (jpeg is { Length: > 0 })
-        {
-            _buffer.Update(jpeg);
-            _lastCaptureUtc = DateTime.UtcNow;
-            Log($"screenshot captured: {jpeg.Length} bytes on {screen}");
-        }
-        else
-        {
-            Log($"screenshot capture failed on {screen}: {error ?? "no data"}");
-        }
+        return (jpeg, error);
     }
 
     // Internal SDK diagnostics go to the platform log only — never to the event's

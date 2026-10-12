@@ -7,6 +7,35 @@ All notable changes to IntelligenceKit are documented here. The format is based 
 The public API of the `IntelligenceKit.Core` and `IntelligenceKit.Maui` NuGet packages
 is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stability)).
 
+## [Unreleased]
+
+The SDK API is extended, not changed. Apps built against 1.1 compile and run unchanged, and the
+new behavior is opt-in.
+
+> **Upgrade the server first** if you turn on `EnableSessionTimeline`: an older server stores
+> timeline batches as ordinary events. The server migrates its database on startup.
+
+### Added
+
+- **Session timeline** (`EnableSessionTimeline`, off by default): the SDK records the whole session
+  (screens, user actions, HTTP calls, logs, screenshots), not only the breadcrumbs attached to errors,
+  and sends it in batches through the offline queue, so the steps before a crash survive it. Errors and
+  logs carry their `SessionId` and appear in place. Volume controls: `SessionTimelineMaxEntries`,
+  `SessionTimelineSampleRate`, `SessionTimelineFlushInterval`. MAUI and the desktop/hosting SDKs.
+- **Sessions page** in the dashboard, and a **session detail** page with the timeline: category
+  filters, search, expandable steps, screenshots, links to error events, and live updates while the
+  session runs. Events link to their session.
+- **On-demand screenshots** on MAUI: inject `IScreenCapture` and call `CaptureToTimelineAsync()`.
+  `ScreenCaptureExcludedPages` is respected.
+- `kit.TrackAction(...)` and `kit.TrackScreen(...)` extension methods for readable user-action and
+  screen breadcrumbs.
+- HTTP breadcrumbs include `request_size` and `response_size` (from `Content-Length`; bodies are never read).
+- Server: `GET /sessions`, `GET /sessions/{id}`, `GET /sessions/{id}/timeline`; SignalR messages
+  `sessionUpdated` and `timelineReceived`; sessions store device model, manufacturer and OS; the
+  `ik.timeline.entries.ingested` metric; retention also prunes timeline entries. Migration
+  `SessionTimeline` for SQLite, PostgreSQL and SQL Server.
+- Demo data includes recent sessions with a timeline, one of them crashing on "Pay".
+
 ## [1.1.0] - 2026-09-24
 
 The SDK API is extended, not changed. Apps built against 1.0 compile and run unchanged.

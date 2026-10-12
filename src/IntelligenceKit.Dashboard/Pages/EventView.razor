@@ -50,6 +50,11 @@ else
                         {
                             @Field("User", null)
                         }
+                        @if (_event.SessionId is { } sessionId)
+                        {
+                            <dt class="col-sm-4 text-muted fw-normal">Session</dt>
+                            <dd class="col-sm-8"><a href="@($"/sessions/{sessionId}")">Open session timeline &rarr;</a></dd>
+                        }
                         @Field("Application", $"{_event.ApplicationName} {_event.ApplicationVersion}")
                         @Field("Platform", _event.Platform)
                         @Field("Operating system", _event.OperatingSystem)

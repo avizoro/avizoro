@@ -1,7 +1,10 @@
+using IntelligenceKit.Core.Configuration;
+using IntelligenceKit.Core.Diagnostics;
 using IntelligenceKit.Core.Enums;
 using IntelligenceKit.Core.Models;
 using IntelligenceKit.Core.Services;
 using IntelligenceKit.Core.Storage;
+using IntelligenceKit.Maui.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Sample.Maui
@@ -86,6 +89,47 @@ namespace Sample.Maui
                 BreadcrumbCategories.User,
                 data: new Dictionary<string, string> { ["count"] = _breadcrumbCount.ToString() });
             StatusLabel.Text = $"Breadcrumb #{_breadcrumbCount} agregado (viaja con el próximo evento).";
+        }
+
+        private int _actionCount;
+
+        private void OnTrackActionClicked(object? sender, EventArgs e)
+        {
+            var kit = Services.GetRequiredService<IIntelligenceKit>();
+            _actionCount++;
+            kit.TrackAction("demo_button_clicked", new Dictionary<string, string> { ["count"] = _actionCount.ToString() });
+            StatusLabel.Text = $"Acción #{_actionCount} registrada (aparece en la timeline de la sesión).";
+        }
+
+        // One instrumented client for the page: every request becomes an "http" step.
+        private HttpClient? _http;
+
+        private async void OnHttpClicked(object? sender, EventArgs e)
+        {
+            var kit = Services.GetRequiredService<IIntelligenceKit>();
+            var server = Services.GetRequiredService<IntelligenceOptions>().ServerUrl;
+            _http ??= new HttpClient(new IntelligenceKitHttpHandler(kit) { InnerHandler = new HttpClientHandler() })
+            {
+                Timeout = TimeSpan.FromSeconds(10)
+            };
+
+            try
+            {
+                using var response = await _http.GetAsync($"{server}/health/live");
+                StatusLabel.Text = $"GET /health/live → {(int)response.StatusCode}.";
+            }
+            catch (Exception ex)
+            {
+                StatusLabel.Text = $"La llamada falló ({ex.GetType().Name}); también queda en la timeline.";
+            }
+        }
+
+        private async void OnScreenshotClicked(object? sender, EventArgs e)
+        {
+            var captured = await Services.GetRequiredService<IScreenCapture>().CaptureToTimelineAsync();
+            StatusLabel.Text = captured
+                ? "Captura agregada a la timeline de la sesión."
+                : "No se pudo capturar (timeline desactivada o pantalla excluida).";
         }
 
         private async void OnLogClicked(object? sender, EventArgs e)

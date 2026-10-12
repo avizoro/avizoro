@@ -36,6 +36,9 @@ public class StoredEvent
     /// <summary>Opt-in user identifier, if provided.</summary>
     public string? UserId { get; set; }
 
+    /// <summary>The SDK session the event happened in (places it on the session timeline).</summary>
+    public Guid? SessionId { get; set; }
+
     public string EventType { get; set; } = string.Empty;
 
     /// <summary>Grouping key tying this event to its <see cref="Issue"/>.</summary>

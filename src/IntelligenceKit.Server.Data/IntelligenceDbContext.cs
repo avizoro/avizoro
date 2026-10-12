@@ -19,6 +19,8 @@ public class IntelligenceDbContext : DbContext
 
     public DbSet<AppSession> Sessions => Set<AppSession>();
 
+    public DbSet<TimelineEntry> TimelineEntries => Set<TimelineEntry>();
+
     public DbSet<SymbolFile> Symbols => Set<SymbolFile>();
 
     public DbSet<StoredSpan> Spans => Set<StoredSpan>();
@@ -38,6 +40,8 @@ public class IntelligenceDbContext : DbContext
         stored.HasIndex(e => e.EventType);
         // Listing the events that belong to an issue.
         stored.HasIndex(e => new { e.ProjectId, e.Fingerprint });
+        // Merging a session's errors into its timeline.
+        stored.HasIndex(e => e.SessionId);
 
         var screenshot = modelBuilder.Entity<StoredScreenshot>();
         screenshot.HasKey(s => s.EventId);
@@ -66,6 +70,19 @@ public class IntelligenceDbContext : DbContext
         // Release-health reads: a project's sessions in a time window, per release.
         session.HasIndex(s => new { s.ProjectId, s.Started });
         session.HasIndex(s => new { s.ProjectId, s.Release });
+        session.Property(s => s.DeviceModel).HasMaxLength(200);
+        session.Property(s => s.Manufacturer).HasMaxLength(200);
+        session.Property(s => s.OperatingSystem).HasMaxLength(200);
+
+        var timeline = modelBuilder.Entity<TimelineEntry>();
+        timeline.HasKey(t => t.Id);
+        timeline.Property(t => t.Category).HasMaxLength(64);
+        timeline.Property(t => t.Level).HasMaxLength(16);
+        timeline.Property(t => t.Message).HasMaxLength(TimelineLimits.MessageLength);
+        // Reading one session in order; idempotent ingest / screenshot scope by batch; retention.
+        timeline.HasIndex(t => new { t.SessionId, t.Sequence });
+        timeline.HasIndex(t => t.BatchId);
+        timeline.HasIndex(t => new { t.ProjectId, t.ReceivedAt });
 
         var symbol = modelBuilder.Entity<SymbolFile>();
         symbol.HasKey(s => s.Id);

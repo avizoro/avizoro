@@ -41,6 +41,7 @@ The .NET/MAUI ecosystem lacks a lightweight, self-hostable crash + observability
 - **Sessions**: crash-free sessions and crash-free users, per release.
 - **Performance**: app start, page load, HTTP client and ASP.NET Core request timings (p50, p75, p95).
 - **Context**: breadcrumbs, device state at the time of the crash, environment, release, user, tags, opt-in last-screen capture, and user feedback (including a "what were you doing?" prompt after a crash).
+- **Session timeline** (opt-in): every screen, user action, HTTP call, log line and on-demand screenshot of a session, with its errors in place, watchable live while the app runs.
 - **Offline store-and-forward**: nothing is lost when the app crashes or is offline.
 - **Privacy**: PII scrubbing on by default, `BeforeSend` / `BeforeBreadcrumb` hooks, and sampling.
 

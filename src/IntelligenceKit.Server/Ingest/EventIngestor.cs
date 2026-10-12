@@ -217,6 +217,7 @@ public sealed class EventIngestor
         Environment = e.Environment,
         Release = e.Release,
         UserId = e.UserId,
+        SessionId = e.SessionId,
         EventType = e.EventType.ToString(),
         Level = e.Level?.ToString(),
         Message = e.Message,

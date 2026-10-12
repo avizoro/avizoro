@@ -69,6 +69,24 @@ public class IntelligenceOptions
     public TimeSpan SessionTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
+    /// Record the full activity of each session (navigation, user actions, HTTP calls,
+    /// logs, screenshots) and send it to the server, not only the breadcrumbs attached to
+    /// errors. The dashboard then shows every session as a chronological timeline, live
+    /// while the app runs. Needs <see cref="EnableAutoSessionTracking"/>. OFF by default:
+    /// it sends more data, and the trail can describe what the user did.
+    /// </summary>
+    public bool EnableSessionTimeline { get; set; } = false;
+
+    /// <summary>How often recorded timeline entries are written to the queue and sent (also on background and every 50 entries).</summary>
+    public TimeSpan SessionTimelineFlushInterval { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>Most entries recorded per session; later activity is dropped (a marker entry says so).</summary>
+    public int SessionTimelineMaxEntries { get; set; } = 1000;
+
+    /// <summary>Fraction (0.0–1.0) of sessions whose timeline is recorded. Decided once per session.</summary>
+    public double SessionTimelineSampleRate { get; set; } = 1.0;
+
+    /// <summary>
     /// Report "Application Not Responding" when the UI thread is blocked for longer
     /// than <see cref="AnrThreshold"/>.
     /// </summary>

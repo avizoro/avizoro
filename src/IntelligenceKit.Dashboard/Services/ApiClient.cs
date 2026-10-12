@@ -243,4 +243,30 @@ public class ApiClient(HttpClient http)
         return await http.GetFromJsonAsync<PagedResult<AlertNotificationInfo>>(url, JsonOptions, ct)
                ?? new PagedResult<AlertNotificationInfo>(0, skip, take, Array.Empty<AlertNotificationInfo>());
     }
+
+    public async Task<PagedResult<SessionSummary>> GetSessionsAsync(
+        string? projectId = null, string? status = null, bool withTimeline = false,
+        int skip = 0, int take = 50, CancellationToken ct = default)
+    {
+        var url = $"/sessions?skip={skip}&take={take}";
+        if (!string.IsNullOrWhiteSpace(projectId))
+            url += $"&projectId={Uri.EscapeDataString(projectId)}";
+        if (!string.IsNullOrWhiteSpace(status))
+            url += $"&status={Uri.EscapeDataString(status)}";
+        if (withTimeline)
+            url += "&withTimeline=true";
+
+        return await http.GetFromJsonAsync<PagedResult<SessionSummary>>(url, JsonOptions, ct)
+               ?? new PagedResult<SessionSummary>(0, skip, take, Array.Empty<SessionSummary>());
+    }
+
+    public async Task<SessionTimelineResult?> GetSessionTimelineAsync(Guid id, CancellationToken ct = default)
+    {
+        var response = await http.GetAsync($"/sessions/{id}/timeline", ct);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return null;
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<SessionTimelineResult>(JsonOptions, ct);
+    }
 }

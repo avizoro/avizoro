@@ -112,6 +112,7 @@ if (prometheusEnabled || !string.IsNullOrWhiteSpace(otlpEndpoint))
 builder.Services.AddSignalR();
 builder.Services.AddScoped<EventIngestor>();
 builder.Services.AddScoped<SessionIngestor>();
+builder.Services.AddScoped<TimelineIngestor>();
 builder.Services.AddScoped<IssueBackfill>();
 builder.Services.AddScoped<IntelligenceKit.Server.Demo.DemoSeeder>();
 builder.Services.AddSingleton<SymbolCache>();
@@ -234,7 +235,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Ingest -----------------------------------------------------------------
-app.MapPost("/events", async (IntelligenceEvent intelligenceEvent, HttpRequest request, IntelligenceDbContext db, EventIngestor ingestor, SessionIngestor sessions, IConfiguration config, ServerMetrics metrics) =>
+app.MapPost("/events", async (IntelligenceEvent intelligenceEvent, HttpRequest request, IntelligenceDbContext db, EventIngestor ingestor, SessionIngestor sessions, TimelineIngestor timeline, IConfiguration config, ServerMetrics metrics) =>
 {
     var projectKey = request.Headers["X-IntelligenceKit-Key"].ToString();
 
@@ -281,6 +282,17 @@ app.MapPost("/events", async (IntelligenceEvent intelligenceEvent, HttpRequest r
         return Results.Accepted();
     }
 
+    // Session timeline batches (EnableSessionTimeline) are stored per session, not as issues.
+    if (intelligenceEvent.EventType == EventType.Timeline)
+    {
+        if (intelligenceEvent.SessionId is null || intelligenceEvent.SessionId == Guid.Empty || intelligenceEvent.Breadcrumbs.Count == 0)
+            return Results.BadRequest("Timeline events need 'sessionId' and at least one breadcrumb.");
+
+        var stored = await timeline.IngestAsync(intelligenceEvent);
+        metrics.TimelineEntriesIngested(stored.Stored);
+        return Results.Accepted();
+    }
+
     var result = await ingestor.IngestAsync(intelligenceEvent, projectKey);
     if (result.Duplicate)
         return Results.Ok(new { Id = intelligenceEvent.Id });
@@ -324,7 +336,7 @@ app.MapGet("/events", async (IntelligenceDbContext db, ClaimsPrincipal user, [As
             e.Id, e.ProjectId, e.ApplicationName, e.ApplicationVersion,
             e.Environment, e.Platform, e.DeviceName, e.EventType,
             e.Level, e.UserId,
-            e.ExceptionType, e.ExceptionMessage, e.Message, e.Timestamp, e.ReceivedAt))
+            e.ExceptionType, e.ExceptionMessage, e.Message, e.Timestamp, e.ReceivedAt, e.SessionId))
         .ToListAsync();
 
     return Results.Ok(new PagedResult<EventSummary>(total, skip, take, items));
@@ -366,7 +378,8 @@ app.MapGet("/events/{id:guid}", async (Guid id, IntelligenceDbContext db, Claims
         e.DataJson is null ? null : JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(e.DataJson),
         hasScreenshot,
         e.Timestamp, e.ReceivedAt,
-        symbolicated);
+        symbolicated,
+        e.SessionId);
 
     return Results.Ok(detail);
 }).RequireAuthorization();
@@ -415,8 +428,11 @@ app.MapGet("/events/{id:guid}/screenshot", async (Guid id, IntelligenceDbContext
     var scope = user.ProjectScope();
     if (scope is not null)
     {
+        // Screenshots belong to an event or, for on-demand timeline screenshots, to a timeline batch.
         var proj = await db.Events.AsNoTracking()
-            .Where(e => e.Id == id).Select(e => e.ProjectId).FirstOrDefaultAsync();
+            .Where(e => e.Id == id).Select(e => e.ProjectId).FirstOrDefaultAsync()
+            ?? await db.TimelineEntries.AsNoTracking()
+            .Where(t => t.BatchId == id).Select(t => t.ProjectId).FirstOrDefaultAsync();
         if (proj != scope)
             return Results.NotFound();
     }
@@ -651,7 +667,7 @@ app.MapGet("/issues/{id:guid}/events", async (Guid id, IntelligenceDbContext db,
             e.Id, e.ProjectId, e.ApplicationName, e.ApplicationVersion,
             e.Environment, e.Platform, e.DeviceName, e.EventType,
             e.Level, e.UserId,
-            e.ExceptionType, e.ExceptionMessage, e.Message, e.Timestamp, e.ReceivedAt))
+            e.ExceptionType, e.ExceptionMessage, e.Message, e.Timestamp, e.ReceivedAt, e.SessionId))
         .ToListAsync();
 
     return Results.Ok(new PagedResult<EventSummary>(total, skip, take, items));
@@ -725,6 +741,7 @@ app.MapDelete("/admin/projects/{id:guid}", async (Guid id, IntelligenceDbContext
 }).RequireAuthorization(AdminOnly);
 
 app.MapSessionEndpoints();
+app.MapSessionTimelineEndpoints();
 app.MapReleaseEndpoints();
 app.MapPerformanceEndpoints();
 app.MapFeedbackEndpoints();
