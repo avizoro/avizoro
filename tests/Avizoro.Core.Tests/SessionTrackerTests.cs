@@ -150,4 +150,65 @@ public class SessionTrackerTests
         Assert.Equal(SessionStatus.Crashed, last.Status);
         Assert.Equal(1, last.Errors);
     }
+
+    [Fact]
+    public async Task PreviousRunCrash_ClosesThatSessionAsCrashed_WithoutTouchingTheCurrentOne()
+    {
+        await _tracker.StartAsync();
+        var current = _tracker.Current!.SessionId;
+        var flushesBefore = _uploader.FlushCount;
+        var previous = new SessionInfo
+        {
+            SessionId = Guid.NewGuid(),
+            DistinctId = "install-1",
+            Started = new DateTime(2026, 8, 31, 9, 0, 0, DateTimeKind.Utc),
+            Errors = 3,
+            DurationSeconds = 12.5,
+            Sequence = 2
+        };
+
+        await _tracker.CapturePreviousRunCrashAsync(previous);
+
+        var last = Updates.Last();
+        Assert.Equal(previous.SessionId, last.SessionId);
+        Assert.Equal(SessionStatus.Crashed, last.Status);
+        Assert.Equal(3, last.Errors);
+        Assert.Equal(12.5, last.DurationSeconds);
+        // Must win over any update the dead run sent after the snapshot was taken.
+        Assert.True(last.Sequence > previous.Sequence + 1);
+        Assert.False(last.Init);
+        // Persist-only, and the snapshot handed in is not mutated.
+        Assert.Equal(flushesBefore, _uploader.FlushCount);
+        Assert.Equal(SessionStatus.Ok, previous.Status);
+        Assert.Equal(current, _tracker.Current!.SessionId);
+    }
+
+    [Fact]
+    public async Task Service_PreviousRunCrash_IsDatedAndAttachedToThatSession()
+    {
+        var service = new AvizoroService(
+            _store, _uploader, new AvizoroOptions(), new FakeDeviceContextProvider(),
+            new FakeRuntimeContextProvider(), new Avizoro.Core.Diagnostics.BreadcrumbBuffer(new AvizoroOptions()),
+            new FakeLastScreenProvider(null), new FakeScreenshotStore(), _tracker);
+
+        await _tracker.StartAsync();
+        var flushesBefore = _uploader.FlushCount;
+        var occurredAt = new DateTime(2026, 8, 31, 9, 5, 0, DateTimeKind.Utc);
+        var previous = new SessionInfo { SessionId = Guid.NewGuid(), DistinctId = "install-1" };
+
+        await service.CapturePreviousRunCrashAsync(new ExceptionInfo { Type = "SIGABRT" }, occurredAt, previous);
+
+        var crash = _store.Saved.Single(e => e.EventType == EventType.Exception);
+        Assert.Equal("SIGABRT", crash.Exception!.Type);
+        Assert.Equal(occurredAt, crash.Timestamp);
+        Assert.Equal(previous.SessionId, crash.SessionId);
+        Assert.Equal(crash.Id, service.LastEventId);
+
+        var closed = _store.Saved.Last(e => e.Session?.SessionId == previous.SessionId).Session!;
+        Assert.Equal(SessionStatus.Crashed, closed.Status);
+        // The run that is alive now keeps its session, and nothing is flushed.
+        Assert.NotNull(_tracker.Current);
+        Assert.Equal(SessionStatus.Ok, _tracker.Current!.Status);
+        Assert.Equal(flushesBefore, _uploader.FlushCount);
+    }
 }

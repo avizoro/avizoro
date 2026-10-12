@@ -52,7 +52,7 @@ What the MAUI SDK captures:
 - **Session timeline** (opt-in): the whole session, not only what led to an error. Add a screenshot of the
   current screen with `IScreenCapture.CaptureToTimelineAsync()` (inject `IScreenCapture`).
 
-Android, iOS, Mac Catalyst and Windows are supported. Crash capture on iOS and Mac Catalyst covers managed exceptions. Native `NSException` crashes are not captured yet.
+Android, iOS, Mac Catalyst and Windows are supported. Crash capture on iOS and Mac Catalyst covers managed exceptions and uncaught Objective-C exceptions (`NSException`, with its native stack). A fatal signal (`SIGABRT`, `SIGILL`, `SIGTRAP`, `SIGSYS`) is reported on the next launch without a stack trace; `SIGSEGV` and `SIGBUS` are not captured, because the .NET runtime owns them. Turn all of this off with `EnableNativeCrashCapture = false`.
 
 ## ASP.NET Core
 
@@ -184,6 +184,7 @@ These apply to every SDK (`AvizoroOptions`). The desktop, hosting and ASP.NET Co
 | `SessionTimelineMaxEntries` / `SessionTimelineSampleRate` | `1000` / `1.0` | Entries recorded per session, and fraction of sessions recorded. |
 | `SessionTimelineFlushInterval` | 5 s | How often recorded entries are queued and sent. |
 | `EnableAnrDetection` / `AnrThreshold` | `true` / 5 s | Report a blocked UI thread. |
+| `EnableNativeCrashCapture` | `true` | iOS and Mac Catalyst: uncaught `NSException` and fatal-signal markers. |
 | `EnablePerformanceMonitoring` | `true` | App start, page load and HTTP spans. |
 | `PerformanceSampleRate` | `1.0` | Fraction of spans to keep. |
 | `SampleRate` | `1.0` | Fraction of **non-fatal** events to keep. Crashes are always kept. |

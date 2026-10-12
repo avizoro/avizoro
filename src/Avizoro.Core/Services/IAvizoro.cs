@@ -39,6 +39,16 @@ public interface IAvizoro
     Task CaptureCrashAsync(ExceptionInfo exception);
 
     /// <summary>
+    /// Reports a crash that killed the PREVIOUS run and could only leave a marker
+    /// behind (e.g. a native signal), now that the app is running again. The event
+    /// is dated <paramref name="occurredAt"/> and attached to <paramref name="session"/>,
+    /// which is closed as crashed. Persist-only, like <see cref="CaptureCrashAsync(ExceptionInfo)"/>.
+    /// Default implementation reports it as a crash of the current run.
+    /// </summary>
+    Task CapturePreviousRunCrashAsync(ExceptionInfo exception, DateTime occurredAt, SessionInfo? session = null)
+        => CaptureCrashAsync(exception);
+
+    /// <summary>
     /// Id of the most recent exception/crash/log event captured in this process,
     /// to attach <see cref="CaptureFeedbackAsync"/> to. Null when none yet.
     /// </summary>

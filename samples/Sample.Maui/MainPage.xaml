@@ -113,6 +113,27 @@
                 TextColor="White"
                 HorizontalOptions="Fill" />
 
+            <!-- Only shown on iOS and Mac Catalyst (see the code-behind). -->
+            <Button
+                x:Name="NativeExceptionBtn"
+                Text="Provocar NSException nativa"
+                SemanticProperties.Hint="Lanza una excepción de Objective-C fuera del código administrado"
+                Clicked="OnNativeExceptionClicked"
+                IsVisible="False"
+                BackgroundColor="#B00020"
+                TextColor="White"
+                HorizontalOptions="Fill" />
+
+            <Button
+                x:Name="NativeSignalBtn"
+                Text="Provocar señal nativa (abort)"
+                SemanticProperties.Hint="Termina el proceso con SIGABRT desde código nativo"
+                Clicked="OnNativeSignalClicked"
+                IsVisible="False"
+                BackgroundColor="#B00020"
+                TextColor="White"
+                HorizontalOptions="Fill" />
+
             <Label
                 x:Name="StatusLabel"
                 Text="Listo."

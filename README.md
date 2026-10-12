@@ -306,7 +306,7 @@ A project read key is presented the same way (`Authorization: Bearer <read-key>`
 Shipped in `1.1.0`: issue lifecycle and regressions · alerts · sessions and crash-free rates · release health · ANR detection · symbolication · `BeforeSend`, sampling and PII scrubbing · performance monitoring · better grouping and backfill · `ILogger` provider · ASP.NET Core, Blazor, WPF, WinForms, Avalonia and generic-host SDKs · MAUI on Windows and Mac Catalyst · user feedback · search and filters · issue distributions · affected users · project management UI · export and GitHub/Jira issues · health checks and metrics · GHCR images and cloud templates · demo mode and documentation site.
 
 Next:
-- [ ] Native iOS `NSException` and signal handlers (capture is managed-exception only today)
+- [ ] Native iOS crash stack traces: dSYM symbolication, and `SIGSEGV`/`SIGBUS` (uncaught `NSException` is captured; other fatal signals are reported without a stack)
 - [ ] Per-user accounts and roles for the dashboard
 - [ ] AI-assisted diagnosis over grouped issues (opt-in, provider-agnostic, PII-scrubbed)
 
