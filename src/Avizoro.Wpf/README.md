@@ -1,7 +1,7 @@
 # Avizoro.Wpf
 
 Crash reporting and diagnostics for **WPF** apps with a self-hosted
-[Avizoro](https://github.com/wilsonvargas/Avizoro) server.
+[Avizoro](https://github.com/avizoro/avizoro) server.
 
 ```csharp
 public partial class App : Application

@@ -14,7 +14,7 @@ nav_order: 2
 The quickest way to see Avizoro is the demo stack. It seeds two weeks of sample data (a shop app with three releases, a regression, an ANR, slow endpoints and user feedback) and runs read-only:
 
 ```bash
-git clone https://github.com/wilsonvargas/Avizoro
+git clone https://github.com/avizoro/avizoro
 cd Avizoro
 AVIZORO_READ_TOKEN=demo docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 ```
@@ -49,7 +49,7 @@ dotnet run --project src/Avizoro.Server        # http://0.0.0.0:7099
 dotnet run --project src/Avizoro.Dashboard     # http://localhost:5292
 ```
 
-The server creates and migrates its database on startup. To run on a cloud host, see [Deploying](https://github.com/wilsonvargas/Avizoro/blob/master/deploy/README.md).
+The server creates and migrates its database on startup. To run on a cloud host, see [Deploying](https://github.com/avizoro/avizoro/blob/master/deploy/README.md).
 
 ## 2. Create a project
 

@@ -16,7 +16,7 @@ Avizoro captures crashes, ANRs, logs, sessions and performance from your app, sh
 
 > Avizoro was previously published as **IntelligenceKit**. Upgrading from 1.x: see the [CHANGELOG](CHANGELOG.md).
 
-📖 **[Documentation](https://wilsonvargas.github.io/Avizoro/)** · 🧪 [Try the demo](#try-the-demo) · 🚀 [Deploy](deploy/README.md)
+📖 **[Documentation](https://avizoro.github.io/avizoro/)** · 🧪 [Try the demo](#try-the-demo) · 🚀 [Deploy](deploy/README.md)
 
 ![Avizoro dashboard — live Overview](docs/images/overview.jpg)
 
@@ -194,7 +194,7 @@ AppBuilder.Configure<App>().UseAvizoro(dsn); // Avalonia
 services.AddAvizoro(dsn);                    // console apps, workers, services
 ```
 
-See [SDKs](https://wilsonvargas.github.io/Avizoro/sdks) for the details of each one.
+See [SDKs](https://avizoro.github.io/avizoro/sdks) for the details of each one.
 
 **Use it in code** (`IAvizoro` is injected via DI):
 

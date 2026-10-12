@@ -1,6 +1,6 @@
 # Avizoro.Hosting
 
-Generic [Avizoro](https://github.com/wilsonvargas/Avizoro) SDK for any
+Generic [Avizoro](https://github.com/avizoro/avizoro) SDK for any
 .NET app: console tools, workers, services, desktop apps. It is also the base of the
 `Avizoro.AspNetCore`, `.Wpf`, `.WinForms`, `.Avalonia` and `.Blazor` packages.
 

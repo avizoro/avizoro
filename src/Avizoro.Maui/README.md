@@ -48,5 +48,5 @@ await kit.TrackExceptionAsync(ex);   // manual capture — crashes are automatic
 
 > **Android emulator:** use the host alias `10.0.2.2` instead of `localhost` in the DSN.
 
-You'll need the [Avizoro server + dashboard](https://github.com/wilsonvargas/Avizoro)
-running to receive and view events. Full guide: [documentation](https://wilsonvargas.github.io/Avizoro/sdks#net-maui).
+You'll need the [Avizoro server + dashboard](https://github.com/avizoro/avizoro)
+running to receive and view events. Full guide: [documentation](https://avizoro.github.io/avizoro/sdks#net-maui).

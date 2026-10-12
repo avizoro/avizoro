@@ -1,7 +1,7 @@
 # Avizoro.WinForms
 
 Crash reporting and diagnostics for **Windows Forms** apps with a self-hosted
-[Avizoro](https://github.com/wilsonvargas/Avizoro) server.
+[Avizoro](https://github.com/avizoro/avizoro) server.
 
 ```csharp
 [STAThread]

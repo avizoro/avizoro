@@ -6,8 +6,8 @@ GitHub Container Registry:
 
 | Image | Port | Key settings |
 |---|---|---|
-| `ghcr.io/wilsonvargas/avizoro-server` | `$PORT` (default 7099) | `Auth__ReadToken`, `Database__Provider`, `ConnectionStrings__Events` (or `DATABASE_URL`) |
-| `ghcr.io/wilsonvargas/avizoro-dashboard` | `$PORT` (default 80) | `API_BASE_URL`, the server URL **as the browser reaches it** |
+| `ghcr.io/avizoro/avizoro-server` | `$PORT` (default 7099) | `Auth__ReadToken`, `Database__Provider`, `ConnectionStrings__Events` (or `DATABASE_URL`) |
+| `ghcr.io/avizoro/avizoro-dashboard` | `$PORT` (default 80) | `API_BASE_URL`, the server URL **as the browser reaches it** |
 
 Tags: `latest` (default branch), `1.2.3` / `1.2` (releases), `sha-<commit>`.
 
@@ -27,7 +27,7 @@ to build from source instead.
 
 ## Render: one click, with managed PostgreSQL
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/wilsonvargas/Avizoro)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/avizoro/avizoro)
 
 The [`render.yaml`](../render.yaml) Blueprint creates `avizoro-db` (PostgreSQL),
 `avizoro-server` and `avizoro-dashboard`. Render asks for two values:
@@ -43,7 +43,7 @@ generated for you: copy `Auth__ReadToken` from `avizoro-server` → *Environment
 
 ## Azure App Service
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwilsonvargas%2FAvizoro%2Fmaster%2Fdeploy%2Fazure%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Favizoro%2Favizoro%2Fmaster%2Fdeploy%2Fazure%2Fazuredeploy.json)
 
 [`azure/azuredeploy.json`](azure/azuredeploy.json) creates a Linux App Service
 plan with two container apps: `<prefix>-server` and `<prefix>-dashboard`. The

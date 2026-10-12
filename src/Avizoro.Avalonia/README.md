@@ -1,7 +1,7 @@
 # Avizoro.Avalonia
 
 Crash reporting and diagnostics for **Avalonia** desktop apps with a self-hosted
-[Avizoro](https://github.com/wilsonvargas/Avizoro) server.
+[Avizoro](https://github.com/avizoro/avizoro) server.
 
 ```csharp
 public static AppBuilder BuildAvaloniaApp()

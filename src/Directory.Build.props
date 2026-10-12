@@ -14,12 +14,12 @@
     <Copyright>Copyright (c) Wilson Vargas</Copyright>
 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/wilsonvargas/Avizoro</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/wilsonvargas/Avizoro</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/avizoro/avizoro</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/avizoro/avizoro</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>observability;crash-reporting;logging;diagnostics;telemetry;maui;dotnet;sentry-alternative</PackageTags>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>https://github.com/wilsonvargas/Avizoro/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/avizoro/avizoro/blob/master/CHANGELOG.md</PackageReleaseNotes>
 
     <!-- Not packable unless a project opts in. -->
     <IsPackable>false</IsPackable>

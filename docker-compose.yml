@@ -25,7 +25,7 @@ services:
     restart: unless-stopped
 
   server:
-    image: ghcr.io/wilsonvargas/avizoro-server:${AVIZORO_VERSION:-latest}
+    image: ghcr.io/avizoro/avizoro-server:${AVIZORO_VERSION:-latest}
     build:
       context: .
       dockerfile: docker/server.Dockerfile
@@ -44,7 +44,7 @@ services:
     restart: unless-stopped
 
   dashboard:
-    image: ghcr.io/wilsonvargas/avizoro-dashboard:${AVIZORO_VERSION:-latest}
+    image: ghcr.io/avizoro/avizoro-dashboard:${AVIZORO_VERSION:-latest}
     build:
       context: .
       dockerfile: docker/dashboard.Dockerfile

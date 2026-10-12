@@ -17,7 +17,7 @@ FROM nginx:1.27-alpine AS runtime
 
 LABEL org.opencontainers.image.title="Avizoro Dashboard" \
       org.opencontainers.image.description="Blazor WebAssembly dashboard for Avizoro." \
-      org.opencontainers.image.source="https://github.com/wilsonvargas/Avizoro" \
+      org.opencontainers.image.source="https://github.com/avizoro/avizoro" \
       org.opencontainers.image.licenses="MIT"
 
 # SPA routing + WASM MIME/caching rules. Installed as a template: the nginx

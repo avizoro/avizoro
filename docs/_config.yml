@@ -11,13 +11,13 @@ heading_anchors: true
 logo: /images/icon.png
 
 aux_links:
-  GitHub: https://github.com/wilsonvargas/Avizoro
+  GitHub: https://github.com/avizoro/avizoro
   NuGet: https://www.nuget.org/packages?q=Avizoro
 aux_links_new_tab: true
 
 gh_edit_link: true
 gh_edit_link_text: Edit this page on GitHub
-gh_edit_repository: https://github.com/wilsonvargas/Avizoro
+gh_edit_repository: https://github.com/avizoro/avizoro
 gh_edit_branch: master
 gh_edit_source: docs
 gh_edit_view_mode: tree

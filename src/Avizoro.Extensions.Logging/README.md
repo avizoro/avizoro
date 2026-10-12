@@ -1,6 +1,6 @@
 # Avizoro.Extensions.Logging
 
-`Microsoft.Extensions.Logging` provider for [Avizoro](https://github.com/wilsonvargas/Avizoro).
+`Microsoft.Extensions.Logging` provider for [Avizoro](https://github.com/avizoro/avizoro).
 
 ```csharp
 builder.Logging.AddAvizoro(o =>

@@ -22,7 +22,7 @@ COPY --from=build /app/publish ./
 
 LABEL org.opencontainers.image.title="Avizoro Server" \
       org.opencontainers.image.description="Self-hosted ingest/query backend for Avizoro (crash reporting & observability for .NET)." \
-      org.opencontainers.image.source="https://github.com/wilsonvargas/Avizoro" \
+      org.opencontainers.image.source="https://github.com/avizoro/avizoro" \
       org.opencontainers.image.licenses="MIT"
 
 # Listens on $PORT (default 7099, the project's http profile). PaaS platforms

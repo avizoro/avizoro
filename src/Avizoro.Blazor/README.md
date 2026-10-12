@@ -1,7 +1,7 @@
 # Avizoro.Blazor
 
 Error tracking for **Blazor WebAssembly** apps with a self-hosted
-[Avizoro](https://github.com/wilsonvargas/Avizoro) server.
+[Avizoro](https://github.com/avizoro/avizoro) server.
 
 ```csharp
 var builder = WebAssemblyHostBuilder.CreateDefault(args);

@@ -19,7 +19,7 @@
     "imageTag": {
       "type": "string",
       "defaultValue": "latest",
-      "metadata": { "description": "Tag of ghcr.io/wilsonvargas/avizoro-{server,dashboard}." }
+      "metadata": { "description": "Tag of ghcr.io/avizoro/avizoro-{server,dashboard}." }
     },
     "sku": {
       "type": "string",
@@ -60,7 +60,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('planName'))]",
         "httpsOnly": true,
         "siteConfig": {
-          "linuxFxVersion": "[concat('DOCKER|ghcr.io/wilsonvargas/avizoro-server:', parameters('imageTag'))]",
+          "linuxFxVersion": "[concat('DOCKER|ghcr.io/avizoro/avizoro-server:', parameters('imageTag'))]",
           "alwaysOn": true,
           "healthCheckPath": "/health/ready",
           "appSettings": [
@@ -86,7 +86,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('planName'))]",
         "httpsOnly": true,
         "siteConfig": {
-          "linuxFxVersion": "[concat('DOCKER|ghcr.io/wilsonvargas/avizoro-dashboard:', parameters('imageTag'))]",
+          "linuxFxVersion": "[concat('DOCKER|ghcr.io/avizoro/avizoro-dashboard:', parameters('imageTag'))]",
           "appSettings": [
             { "name": "WEBSITES_PORT", "value": "80" },
             { "name": "DOCKER_REGISTRY_SERVER_URL", "value": "https://ghcr.io" },

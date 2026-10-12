@@ -1,7 +1,7 @@
 # Avizoro.AspNetCore
 
 Self-hosted error tracking + performance for ASP.NET Core, backed by an
-[Avizoro](https://github.com/wilsonvargas/Avizoro) server.
+[Avizoro](https://github.com/avizoro/avizoro) server.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);

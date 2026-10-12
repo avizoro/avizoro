@@ -12,7 +12,7 @@ Self-hosted crash reporting, performance monitoring and release health for .NET 
 
 [Get started](getting-started.md){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [Try the demo](getting-started.md#try-the-demo){: .btn .fs-5 .mb-4 .mb-md-0 .mr-2 }
-[GitHub](https://github.com/wilsonvargas/Avizoro){: .btn .fs-5 .mb-4 .mb-md-0 }
+[GitHub](https://github.com/avizoro/avizoro){: .btn .fs-5 .mb-4 .mb-md-0 }
 
 ![The dashboard overview](images/overview.jpg)
 
@@ -64,4 +64,4 @@ Each event is written to a local queue before it is uploaded. If the app crashes
 - [Features](features.md): sessions, performance, symbols, alerts, feedback and privacy.
 - [Server configuration](server.md): database, auth, alerts, integrations, telemetry and demo mode.
 - [HTTP API](api.md): the endpoints the dashboard uses, for scripting and integrations.
-- [Deploying](https://github.com/wilsonvargas/Avizoro/blob/master/deploy/README.md): Docker Compose, Render, Azure and Railway.
+- [Deploying](https://github.com/avizoro/avizoro/blob/master/deploy/README.md): Docker Compose, Render, Azure and Railway.
