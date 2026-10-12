@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
+    <!-- Pin the native SQLite bundle to a patched version (transitive default
+         2.1.11 has advisory GHSA-2m69-gcr7-jv3q). -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.13" />
+    <!-- Server metrics/traces (opt-in via Telemetry:*). The Prometheus exporter is
+         only published as beta by OpenTelemetry; pinned. -->
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.19.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.19.1-beta.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.19.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.19.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.19.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Avizoro.Core\Avizoro.Core.csproj" />
+    <ProjectReference Include="..\Avizoro.Server.Contracts\Avizoro.Server.Contracts.csproj" />
+    <ProjectReference Include="..\Avizoro.Server.Data\Avizoro.Server.Data.csproj" />
+    <!-- Provider-specific migration assemblies, loaded by name at runtime. -->
+    <ProjectReference Include="..\Avizoro.Server.Migrations.Sqlite\Avizoro.Server.Migrations.Sqlite.csproj" />
+    <ProjectReference Include="..\Avizoro.Server.Migrations.PostgreSql\Avizoro.Server.Migrations.PostgreSql.csproj" />
+    <ProjectReference Include="..\Avizoro.Server.Migrations.SqlServer\Avizoro.Server.Migrations.SqlServer.csproj" />
+  </ItemGroup>
+
+</Project>

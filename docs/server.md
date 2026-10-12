@@ -15,7 +15,7 @@ The server is configured through `appsettings.json` or environment variables. In
 
 ```jsonc
 "Database": { "Provider": "Sqlite" },     // Sqlite | PostgreSql | SqlServer
-"ConnectionStrings": { "Events": "Data Source=intelligencekit.db" }
+"ConnectionStrings": { "Events": "Data Source=avizoro.db" }
 ```
 
 - SQLite is the default and needs no setup. The folder of the database file is created if it's missing.
@@ -25,7 +25,7 @@ The server is configured through `appsettings.json` or environment variables. In
 ## Authentication
 
 ```jsonc
-"Auth": { "ReadToken": "ik_admin_<long random string>" }
+"Auth": { "ReadToken": "avizoro_admin_<long random string>" }
 ```
 
 - The **admin token** can read everything and manage projects, alerts and symbols. Send it as `Authorization: Bearer <token>`.
@@ -55,7 +55,7 @@ Off by default, so a new install never deletes anything:
 
 ```jsonc
 "Alerts": {
-  "DashboardUrl": "https://ik.example.com",          // for "open issue" links
+  "DashboardUrl": "https://avizoro.example.com",          // for "open issue" links
   "Smtp": { "Host": "smtp.example.com", "Port": 587, "EnableSsl": true,
             "User": "", "Password": "", "From": "alerts@example.com" }
 }
@@ -87,7 +87,7 @@ Rules are created in the dashboard. SMTP is only needed for email rules. See [Al
 
 - `GET /health/live`: the process is up.
 - `GET /health/ready`: the database can be reached. Use this for load balancer and orchestrator probes.
-- `GET /metrics`: Prometheus metrics: events ingested and rejected, ingest duration, issue changes, session updates, spans, and alerts delivered (`ik.*`), plus ASP.NET Core and .NET runtime metrics. It needs the admin token unless `RequireAuth` is `false`.
+- `GET /metrics`: Prometheus metrics: events ingested and rejected, ingest duration, issue changes, session updates, spans, and alerts delivered (`avizoro.*`), plus ASP.NET Core and .NET runtime metrics. It needs the admin token unless `RequireAuth` is `false`.
 - With `Otlp:Endpoint` set, metrics and traces are also pushed over OTLP.
 
 ## Demo mode

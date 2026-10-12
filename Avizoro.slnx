@@ -1,0 +1,28 @@
+<Solution>
+  <Project Path="src/Avizoro.Core/Avizoro.Core.csproj" />
+  <Project Path="src/Avizoro.Dashboard/Avizoro.Dashboard.csproj" />
+  <Project Path="src/Avizoro.Maui/Avizoro.Maui.csproj" Id="a9410bf5-a045-4059-ad0d-5be38508283e" />
+  <Project Path="src/Avizoro.Server.Contracts/Avizoro.Server.Contracts.csproj" />
+  <Project Path="src/Avizoro.Server.Data/Avizoro.Server.Data.csproj" />
+  <Project Path="src/Avizoro.Server.Migrations.PostgreSql/Avizoro.Server.Migrations.PostgreSql.csproj" />
+  <Project Path="src/Avizoro.Server.Migrations.Sqlite/Avizoro.Server.Migrations.Sqlite.csproj" />
+  <Project Path="src/Avizoro.Server.Migrations.SqlServer/Avizoro.Server.Migrations.SqlServer.csproj" />
+  <Project Path="src/Avizoro.Server/Avizoro.Server.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/Avizoro.AspNetCore/Avizoro.AspNetCore.csproj" />
+    <Project Path="src/Avizoro.Avalonia/Avizoro.Avalonia.csproj" />
+    <Project Path="src/Avizoro.Blazor/Avizoro.Blazor.csproj" />
+    <Project Path="src/Avizoro.Extensions.Logging/Avizoro.Extensions.Logging.csproj" />
+    <Project Path="src/Avizoro.Hosting/Avizoro.Hosting.csproj" />
+    <Project Path="src/Avizoro.WinForms/Avizoro.WinForms.csproj" />
+    <Project Path="src/Avizoro.Wpf/Avizoro.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Avizoro.Sdk.Tests/Avizoro.Sdk.Tests.csproj" />
+  </Folder>
+  <Project Path="samples/Sample.Maui/Sample.Maui.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+  <Project Path="tests/Avizoro.Core.Tests/Avizoro.Core.Tests.csproj" />
+  <Project Path="tests/Avizoro.Server.Tests/Avizoro.Server.Tests.csproj" />
+</Solution>

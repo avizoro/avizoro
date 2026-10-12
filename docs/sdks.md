@@ -6,29 +6,29 @@ nav_order: 3
 # SDKs
 {: .no_toc }
 
-Every SDK uses the same DSN, sends the same event format and shares the options in [`IntelligenceOptions`](#common-options).
+Every SDK uses the same DSN, sends the same event format and shares the options in [`AvizoroOptions`](#common-options).
 
 1. TOC
 {:toc}
 
 | Package | For | Entry point |
 |---|---|---|
-| `IntelligenceKit.Maui` | .NET MAUI (Android, iOS, Mac Catalyst, Windows) | `builder.UseIntelligenceKit(dsn)` |
-| `IntelligenceKit.AspNetCore` | ASP.NET Core APIs and sites | `builder.UseIntelligenceKit(dsn)` |
-| `IntelligenceKit.Blazor` | Blazor WebAssembly | `builder.UseIntelligenceKit(dsn)` + `host.StartIntelligenceKit()` |
-| `IntelligenceKit.Wpf` | WPF | `IntelligenceKitWpf.Init(dsn)` |
-| `IntelligenceKit.WinForms` | Windows Forms | `IntelligenceKitWinForms.Init(dsn)` |
-| `IntelligenceKit.Avalonia` | Avalonia desktop | `AppBuilder.UseIntelligenceKit(dsn)` |
-| `IntelligenceKit.Hosting` | Console apps, workers, services | `services.AddIntelligenceKit(dsn)` or `IntelligenceKitSdk.Init(dsn)` |
-| `IntelligenceKit.Extensions.Logging` | Any app using `ILogger` | `logging.AddIntelligenceKit()` |
-| `IntelligenceKit.Core` | Building your own integration | Domain model and services |
+| `Avizoro.Maui` | .NET MAUI (Android, iOS, Mac Catalyst, Windows) | `builder.UseAvizoro(dsn)` |
+| `Avizoro.AspNetCore` | ASP.NET Core APIs and sites | `builder.UseAvizoro(dsn)` |
+| `Avizoro.Blazor` | Blazor WebAssembly | `builder.UseAvizoro(dsn)` + `host.StartAvizoro()` |
+| `Avizoro.Wpf` | WPF | `AvizoroWpf.Init(dsn)` |
+| `Avizoro.WinForms` | Windows Forms | `AvizoroWinForms.Init(dsn)` |
+| `Avizoro.Avalonia` | Avalonia desktop | `AppBuilder.UseAvizoro(dsn)` |
+| `Avizoro.Hosting` | Console apps, workers, services | `services.AddAvizoro(dsn)` or `AvizoroSdk.Init(dsn)` |
+| `Avizoro.Extensions.Logging` | Any app using `ILogger` | `logging.AddAvizoro()` |
+| `Avizoro.Core` | Building your own integration | Domain model and services |
 
 ## .NET MAUI
 
 ```csharp
 builder
     .UseMauiApp<App>()
-    .UseIntelligenceKit("https://projectKey@host/my-app", o =>
+    .UseAvizoro("https://projectKey@host/my-app", o =>
     {
         o.Environment = "production";
         o.EnableScreenCapture = true;              // opt-in, downscaled JPEG
@@ -38,7 +38,7 @@ builder
     });
 
 builder.Services.AddHttpClient("api")
-    .AddIntelligenceKitHandler();                  // HTTP breadcrumbs + timings
+    .AddAvizoroHandler();                  // HTTP breadcrumbs + timings
 ```
 
 What the MAUI SDK captures:
@@ -58,13 +58,13 @@ Android, iOS, Mac Catalyst and Windows are supported. Crash capture on iOS and M
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
-builder.UseIntelligenceKit("https://projectKey@host/my-api", o =>
+builder.UseAvizoro("https://projectKey@host/my-api", o =>
 {
     o.SampleRate = 0.5;           // keep half of the handled errors
 });
 
 builder.Services.AddHttpClient<PaymentsClient>()
-    .AddIntelligenceKitHandler(); // trace outgoing calls
+    .AddAvizoroHandler(); // trace outgoing calls
 ```
 
 - Exceptions that escape the request pipeline are captured and tagged with the method, route, path and trace id.
@@ -76,10 +76,10 @@ builder.Services.AddHttpClient<PaymentsClient>()
 
 ```csharp
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-builder.UseIntelligenceKit("https://projectKey@host/my-spa");
+builder.UseAvizoro("https://projectKey@host/my-spa");
 
 var host = builder.Build();
-host.StartIntelligenceKit();
+host.StartAvizoro();
 await host.RunAsync();
 ```
 
@@ -90,7 +90,7 @@ Unhandled component exceptions and `ILogger` errors become events. Route changes
 ```csharp
 public partial class App : Application
 {
-    public App() => IntelligenceKitWpf.Init("https://projectKey@host/my-desktop-app");
+    public App() => AvizoroWpf.Init("https://projectKey@host/my-desktop-app");
 }
 ```
 
@@ -100,7 +100,7 @@ public partial class App : Application
 [STAThread]
 static void Main()
 {
-    using var ik = IntelligenceKitWinForms.Init("https://projectKey@host/my-winforms-app");
+    using var ik = AvizoroWinForms.Init("https://projectKey@host/my-winforms-app");
     ApplicationConfiguration.Initialize();
     Application.Run(new MainForm());
 }
@@ -114,7 +114,7 @@ By default an unhandled UI-thread exception ends the app and is captured as a cr
 public static AppBuilder BuildAvaloniaApp()
     => AppBuilder.Configure<App>()
         .UsePlatformDetect()
-        .UseIntelligenceKit("https://projectKey@host/my-avalonia-app");
+        .UseAvizoro("https://projectKey@host/my-avalonia-app");
 ```
 
 The three desktop SDKs all provide:
@@ -126,29 +126,29 @@ The three desktop SDKs all provide:
 - One session per app run.
 - A flush on exit.
 
-Use `IntelligenceKitSdk.Current` anywhere to report exceptions, logs, users and tags.
+Use `AvizoroSdk.Current` anywhere to report exceptions, logs, users and tags.
 
 ## Console apps, workers and services
 
 With the generic host:
 
 ```csharp
-builder.Services.AddIntelligenceKit("https://projectKey@host/my-worker");
+builder.Services.AddAvizoro("https://projectKey@host/my-worker");
 ```
 
 Without DI:
 
 ```csharp
-using var ik = IntelligenceKitSdk.Init("https://projectKey@host/my-tool");
-await IntelligenceKitSdk.Current!.TrackLogAsync(SeverityLevel.Warning, "Low disk space");
+using var ik = AvizoroSdk.Init("https://projectKey@host/my-tool");
+await AvizoroSdk.Current!.TrackLogAsync(SeverityLevel.Warning, "Low disk space");
 ```
 
-The offline queue lives in `%LOCALAPPDATA%/IntelligenceKit/{projectId}`. Set `OfflineStorePath` to change it. On shutdown the SDK waits up to `ShutdownFlushTimeout` (5 s) for pending uploads.
+The offline queue lives in `%LOCALAPPDATA%/Avizoro/{projectId}`. Set `OfflineStorePath` to change it. On shutdown the SDK waits up to `ShutdownFlushTimeout` (5 s) for pending uploads.
 
 To tag everything reported during one unit of work (a job or a message), push a scope:
 
 ```csharp
-using (var scope = IntelligenceScope.Push())
+using (var scope = AvizoroScope.Push())
 {
     scope.SetTag("job", job.Id);
     await RunAsync(job);        // events captured here carry the tag and the scope's breadcrumbs
@@ -160,7 +160,7 @@ using (var scope = IntelligenceScope.Push())
 MAUI, ASP.NET Core, Blazor and the desktop SDKs register this provider for you. To add it yourself:
 
 ```csharp
-builder.Logging.AddIntelligenceKit(o =>
+builder.Logging.AddAvizoro(o =>
 {
     o.MinimumBreadcrumbLevel = LogLevel.Information;   // becomes the breadcrumb trail
     o.MinimumEventLevel = LogLevel.Error;              // sent as events
@@ -171,7 +171,7 @@ A log event without an exception is grouped by its **message template**, so `"Or
 
 ## Common options
 
-These apply to every SDK (`IntelligenceOptions`). The desktop, hosting and ASP.NET Core SDKs add `OfflineStorePath`, `UseInMemoryStore`, `EnableCrashHandlers` and `ShutdownFlushTimeout`.
+These apply to every SDK (`AvizoroOptions`). The desktop, hosting and ASP.NET Core SDKs add `OfflineStorePath`, `UseInMemoryStore`, `EnableCrashHandlers` and `ShutdownFlushTimeout`.
 
 | Option | Default | What it does |
 |---|---|---|
@@ -196,12 +196,12 @@ These apply to every SDK (`IntelligenceOptions`). The desktop, hosting and ASP.N
 | `EnableCrashFeedbackPrompt` | `false` | Ask for comments on the next launch after a crash (MAUI). |
 | `EnableLoggingIntegration` | `true` | Register the `ILogger` provider. |
 
-## The IIntelligenceKit API
+## The IAvizoro API
 
 ```csharp
 Task TrackExceptionAsync(Exception exception);
 Task TrackLogAsync(SeverityLevel level, string message, IDictionary<string, string>? data = null);
-Task TrackAsync(IntelligenceEvent intelligenceEvent);   // full control, e.g. a custom Fingerprint
+Task TrackAsync(AvizoroEvent avizoroEvent);   // full control, e.g. a custom Fingerprint
 void AddBreadcrumb(string message, string category = BreadcrumbCategories.Custom,
     SeverityLevel level = SeverityLevel.Information, IDictionary<string, string>? data = null);
 void SetUser(string? userId);
@@ -209,7 +209,7 @@ void SetTag(string key, string? value);
 Task CaptureFeedbackAsync(UserFeedback feedback);
 Guid? LastEventId { get; }
 
-// Extension methods (IntelligenceKitExtensions)
+// Extension methods (AvizoroExtensions)
 void TrackAction(string action, IDictionary<string, string>? data = null);  // "user" breadcrumb
 void TrackScreen(string screen, IDictionary<string, string>? data = null);  // "navigation" breadcrumb
 ```

@@ -2,17 +2,17 @@
 # managed PostgreSQL). Use the "Deploy to Render" button in the README, or
 # New > Blueprint in the Render dashboard and point it at this repository.
 #
-# After the first deploy, open the ik-server service's Environment tab to copy
+# After the first deploy, open the avizoro-server service's Environment tab to copy
 # the generated Auth__ReadToken: it is the admin token the dashboard asks for.
 databases:
-  - name: ik-db
-    databaseName: intelligencekit
-    user: intelligencekit
+  - name: avizoro-db
+    databaseName: avizoro
+    user: avizoro
     plan: basic-256mb
 
 services:
   - type: web
-    name: ik-server
+    name: avizoro-server
     runtime: docker
     dockerfilePath: ./docker/server.Dockerfile
     dockerContext: .
@@ -24,24 +24,24 @@ services:
       # Render hands out a postgres:// URL; the server converts it for Npgsql.
       - key: ConnectionStrings__Events
         fromDatabase:
-          name: ik-db
+          name: avizoro-db
           property: connectionString
       - key: Auth__ReadToken
         generateValue: true
       # Public dashboard URL, for "open issue" links in alerts and tracker issues
-      # (e.g. https://ik-dashboard.onrender.com). Asked for when the Blueprint is created.
+      # (e.g. https://avizoro-dashboard.onrender.com). Asked for when the Blueprint is created.
       - key: Alerts__DashboardUrl
         sync: false
 
   - type: web
-    name: ik-dashboard
+    name: avizoro-dashboard
     runtime: docker
     dockerfilePath: ./docker/dashboard.Dockerfile
     dockerContext: .
     plan: starter
     envVars:
-      # Public URL of ik-server as the BROWSER reaches it (the dashboard is WASM),
-      # e.g. https://ik-server.onrender.com — shown on the ik-server page after
+      # Public URL of avizoro-server as the BROWSER reaches it (the dashboard is WASM),
+      # e.g. https://avizoro-server.onrender.com — shown on the avizoro-server page after
       # the first deploy. Asked for when the Blueprint is created.
       - key: API_BASE_URL
         sync: false

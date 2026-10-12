@@ -1,0 +1,340 @@
+@page "/issues/{Id:guid}"
+@inject ApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>Issue — Avizoro</PageTitle>
+
+<a class="btn btn-link px-0 mb-2" @onclick="GoBack" @onclick:preventDefault href="#">&larr; Back to issues</a>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_issue is null)
+{
+    <p class="text-muted">Loading issue…</p>
+}
+else
+{
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <h1 class="h4 mb-0 text-danger">@_issue.Title</h1>
+        <span class="badge @BadgeClass(_issue.EventType)">@_issue.EventType</span>
+        <IssueStatusBadge Issue="_issue" />
+    </div>
+    @if (!string.IsNullOrWhiteSpace(_issue.Culprit))
+    {
+        <div class="text-muted mb-1"><code>@_issue.Culprit</code></div>
+    }
+    @if (_issue.FirstRelease is not null)
+    {
+        <div class="small text-muted mb-3">
+            Introduced in <code>@_issue.FirstRelease</code>
+            @if (_issue.LastRelease is not null && _issue.LastRelease != _issue.FirstRelease)
+            {
+                <text> · latest in <code>@_issue.LastRelease</code></text>
+            }
+        </div>
+    }
+
+    @* Triage bar: resolve (optionally pinned to a release), ignore, reopen, assign. *@
+    <div class="card mb-4">
+        <div class="card-body py-2 d-flex flex-wrap align-items-end gap-2">
+            @if (_issue.Status != "Resolved")
+            {
+                <div>
+                    <label class="form-label small text-muted mb-1">Fixed in release (optional)</label>
+                    <input class="form-control form-control-sm" style="width: 11rem" placeholder="e.g. 2.4.0" @bind="_resolveRelease" />
+                </div>
+                <button class="btn btn-success btn-sm" disabled="@_saving" @onclick="Resolve">Resolve</button>
+            }
+            else
+            {
+                <span class="small text-muted align-self-end py-1">
+                    Resolved @_issue.ResolvedAt?.ToLocalTime().ToString("g")
+                    @if (!string.IsNullOrWhiteSpace(_issue.ResolvedInRelease))
+                    {
+                        <text> in <code>@_issue.ResolvedInRelease</code></text>
+                    }
+                </span>
+            }
+            @if (_issue.Status != "Ignored")
+            {
+                <button class="btn btn-outline-secondary btn-sm" disabled="@_saving" @onclick="Ignore">Ignore</button>
+            }
+            @if (_issue.Status != "Unresolved")
+            {
+                <button class="btn btn-outline-primary btn-sm" disabled="@_saving" @onclick="Reopen">Reopen</button>
+            }
+            @if (!string.IsNullOrEmpty(_issue.ExternalIssueUrl))
+            {
+                <a class="btn btn-outline-secondary btn-sm" href="@_issue.ExternalIssueUrl" target="_blank" rel="noopener">Open linked issue ↗</a>
+            }
+            else
+            {
+                @if (_integrations?.GitHub == true)
+                {
+                    <button class="btn btn-outline-secondary btn-sm" disabled="@_saving" @onclick="@(() => ExternalAsync("github"))">
+                        @(_integrations.GitHubCreatesViaApi ? "Create GitHub issue" : "Draft GitHub issue")
+                    </button>
+                }
+                @if (_integrations?.Jira == true)
+                {
+                    <button class="btn btn-outline-secondary btn-sm" disabled="@_saving" @onclick="@(() => ExternalAsync("jira"))">Create Jira issue</button>
+                }
+                @if (_prefilledUrl is not null)
+                {
+                    <a class="btn btn-link btn-sm" href="@_prefilledUrl" target="_blank" rel="noopener">Open the prefilled GitHub form ↗</a>
+                }
+            }
+            <div class="ms-md-auto">
+                <label class="form-label small text-muted mb-1">Assignee</label>
+                <div class="input-group input-group-sm">
+                    <input class="form-control" style="width: 13rem" placeholder="unassigned" @bind="_assignee" />
+                    <button class="btn btn-outline-secondary" disabled="@_saving" @onclick="Assign">Save</button>
+                </div>
+            </div>
+            @if (_triageError is not null)
+            {
+                <div class="text-danger small w-100">@_triageError</div>
+            }
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card"><div class="card-body py-2">
+                <div class="text-muted small">Events</div>
+                <div class="h4 mb-0">@_issue.EventCount</div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card"><div class="card-body py-2">
+                <div class="text-muted small">Last hour</div>
+                <div class="h4 mb-0">@_issue.RecentCount</div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card"><div class="card-body py-2">
+                <div class="text-muted small">First seen</div>
+                <div class="mb-0" title="@_issue.FirstSeen.ToLocalTime().ToString("F")">
+                    @_issue.FirstSeen.ToLocalTime().ToString("g")
+                </div>
+            </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card"><div class="card-body py-2">
+                <div class="text-muted small">Last seen</div>
+                <div class="mb-0" title="@_issue.LastSeen.ToLocalTime().ToString("F")">
+                    @_issue.LastSeen.ToLocalTime().ToString("g")
+                </div>
+            </div></div>
+        </div>
+    </div>
+
+    <DistributionsPanel Data="_distributions" />
+
+    @if (_users is { Count: > 0 })
+    {
+        <h2 class="h6 mb-2">Affected users</h2>
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            @foreach (var u in _users)
+            {
+                <a class="btn btn-sm btn-outline-secondary" href="@($"/users/{Uri.EscapeDataString(u.UserId)}?projectId={Uri.EscapeDataString(_issue.ProjectId)}")"
+                   title="First seen @u.FirstSeen.ToLocalTime().ToString("g") · last @u.LastSeen.ToLocalTime().ToString("g")">
+                    &#128100; @u.UserId <span class="badge text-bg-light border ms-1">@u.Events</span>
+                </a>
+            }
+        </div>
+    }
+
+    <FeedbackList Items="_feedback" ShowEventLink="true" />
+
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <h2 class="h6 mb-0">Occurrences</h2>
+        <a class="btn btn-sm btn-outline-primary" href="@($"/events/{_issue.LastEventId}")">Open latest event</a>
+    </div>
+
+    @if (_events is null)
+    {
+        <p class="text-muted">Loading occurrences…</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Received</th>
+                        <th>Env</th>
+                        <th>App</th>
+                        <th>Platform</th>
+                        <th>Device</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in _events.Items)
+                    {
+                        <tr role="button" @onclick="() => Open(e.Id)">
+                            <td class="text-nowrap small">@e.ReceivedAt.ToLocalTime().ToString("g")</td>
+                            <td class="text-muted small">@e.Environment</td>
+                            <td class="text-nowrap">@e.ApplicationName <span class="text-muted small">@e.ApplicationVersion</span></td>
+                            <td>@e.Platform</td>
+                            <td class="text-truncate" style="max-width: 10rem;" title="@e.DeviceName">@e.DeviceName</td>
+                            <td class="text-truncate" style="max-width: 22rem;" title="@(e.ExceptionMessage ?? e.Message ?? "")">
+                                @(e.ExceptionMessage ?? e.Message)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted small">
+                Showing @(_skip + 1)–@(_skip + _events.Items.Count) of @_events.Total
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="Prev" disabled="@(_skip == 0)">Previous</button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="Next" disabled="@(!HasNext)">Next</button>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private const int PageSize = 50;
+
+    private IssueSummary? _issue;
+    private PagedResult<EventSummary>? _events;
+    private int _skip;
+    private string? _error;
+    private string? _triageError;
+    private IReadOnlyList<FeedbackInfo>? _feedback;
+    private IssueDistributions? _distributions;
+    private IReadOnlyList<AffectedUser>? _users;
+    private IntegrationsInfo? _integrations;
+    private string? _prefilledUrl;
+    private string? _resolveRelease;
+    private string? _assignee;
+    private bool _saving;
+
+    private bool HasNext => _events is not null && _skip + _events.Items.Count < _events.Total;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _skip = 0;
+        _error = null;
+        _issue = null;
+        _events = null;
+        _feedback = null;
+        _distributions = null;
+        _users = null;
+        _prefilledUrl = null;
+        try
+        {
+            _issue = await Api.GetIssueAsync(Id);
+            if (_issue is null)
+            {
+                _error = "That issue was not found.";
+                return;
+            }
+            _assignee = _issue.AssignedTo;
+            await LoadEventsAsync();
+            _feedback = await Api.GetIssueFeedbackAsync(Id);
+            _distributions = await Api.GetIssueDistributionsAsync(Id);
+            _users = await Api.GetIssueUsersAsync(Id);
+            _integrations = await Api.GetIntegrationsAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not reach the API: {ex.Message}";
+        }
+    }
+
+    private Task Resolve() => TriageAsync(new UpdateIssueRequest(Status: "Resolved", ResolvedInRelease: _resolveRelease));
+
+    private Task Ignore() => TriageAsync(new UpdateIssueRequest(Status: "Ignored"));
+
+    private Task Reopen() => TriageAsync(new UpdateIssueRequest(Status: "Unresolved"));
+
+    private Task Assign() => TriageAsync(new UpdateIssueRequest(AssignedTo: _assignee ?? string.Empty));
+
+    private async Task TriageAsync(UpdateIssueRequest request)
+    {
+        _saving = true;
+        _triageError = null;
+        try
+        {
+            var updated = await Api.UpdateIssueAsync(Id, request);
+            if (updated is not null && _issue is not null)
+            {
+                // Keep the trend counts we already have; the PATCH reply doesn't carry them.
+                _issue = updated with { RecentCount = _issue.RecentCount, PreviousCount = _issue.PreviousCount };
+                _assignee = _issue.AssignedTo;
+                _resolveRelease = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            _triageError = $"Could not update the issue: {ex.Message}";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task ExternalAsync(string provider)
+    {
+        _saving = true;
+        _triageError = null;
+        try
+        {
+            var (result, error) = await Api.CreateExternalIssueAsync(Id, provider);
+            if (error is not null)
+                _triageError = error;
+            else if (result is { Prefilled: true })
+                _prefilledUrl = result.Url;
+            else if (result is not null && _issue is not null)
+                _issue = _issue with { ExternalIssueUrl = result.Url };
+        }
+        catch (Exception ex)
+        {
+            _triageError = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task LoadEventsAsync()
+        => _events = await Api.GetIssueEventsAsync(Id, _skip, PageSize);
+
+    private async Task Prev()
+    {
+        _skip = Math.Max(0, _skip - PageSize);
+        await LoadEventsAsync();
+    }
+
+    private async Task Next()
+    {
+        if (!HasNext) return;
+        _skip += PageSize;
+        await LoadEventsAsync();
+    }
+
+    private void Open(Guid eventId) => Nav.NavigateTo($"/events/{eventId}");
+
+    private void GoBack() => Nav.NavigateTo("/issues");
+
+    private static string BadgeClass(string eventType) => eventType switch
+    {
+        "Exception" => "text-bg-danger",
+        "Log" => "text-bg-secondary",
+        _ => "text-bg-light"
+    };
+}

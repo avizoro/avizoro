@@ -1,0 +1,134 @@
+@page "/performance"
+@inject ApiClient Api
+
+<PageTitle>Performance — Avizoro</PageTitle>
+
+<h1 class="page-title mb-1">Performance</h1>
+<p class="text-muted mb-4">App start, page load and HTTP latency percentiles. Slowest (p95) first.</p>
+
+<ul class="nav nav-pills mb-3">
+    @foreach (var (label, value) in Operations)
+    {
+        <li class="nav-item">
+            <button class="nav-link py-1 px-3 @(_operation == value ? "active" : "")" @onclick="() => SelectAsync(value)">@label</button>
+        </li>
+    }
+</ul>
+
+<div class="row g-2 align-items-end mb-3">
+    <div class="col-12 col-md-3">
+        <label class="form-label small text-muted mb-1">Project</label>
+        <input class="form-control form-control-sm" placeholder="all projects" @bind="_projectId" />
+    </div>
+    <div class="col-6 col-md-3">
+        <label class="form-label small text-muted mb-1">Release</label>
+        <input class="form-control form-control-sm" placeholder="all releases" @bind="_release" />
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label small text-muted mb-1">Window</label>
+        <select class="form-select form-select-sm" @bind="_days">
+            <option value="1">24 hours</option>
+            <option value="7">7 days</option>
+            <option value="30">30 days</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <button class="btn btn-primary btn-sm w-100" @onclick="LoadAsync">Apply</button>
+    </div>
+</div>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_rows is null)
+{
+    <p class="text-muted">Loading…</p>
+}
+else if (_rows.Count == 0)
+{
+    <div class="alert alert-info">
+        No timings yet. App start and page loads are recorded automatically; add
+        <code>.AddAvizoroHandler()</code> to an <code>HttpClient</code> to time requests.
+    </div>
+}
+else
+{
+    var max = Math.Max(1, _rows.Max(r => r.P95Ms));
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Operation</th>
+                    <th>Name</th>
+                    <th class="text-end">Count</th>
+                    <th class="text-end">p50</th>
+                    <th class="text-end">p75</th>
+                    <th class="text-end">p95</th>
+                    <th style="min-width: 8rem"></th>
+                    <th class="text-end">Failures</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in _rows)
+                {
+                    <tr>
+                        <td><span class="badge text-bg-light border">@r.Operation</span></td>
+                        <td class="text-truncate" style="max-width: 24rem" title="@r.Name"><code>@r.Name</code></td>
+                        <td class="text-end">@r.Count</td>
+                        <td class="text-end">@Ms(r.P50Ms)</td>
+                        <td class="text-end">@Ms(r.P75Ms)</td>
+                        <td class="text-end fw-semibold">@Ms(r.P95Ms)</td>
+                        <td>
+                            <div class="progress" style="height: .45rem" title="p95 relative to the slowest">
+                                <div class="progress-bar @(r.P95Ms > 1000 ? "bg-danger" : r.P95Ms > 300 ? "bg-warning" : "")"
+                                     style="width: @((r.P95Ms / max * 100).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></div>
+                            </div>
+                        </td>
+                        <td class="text-end @(r.FailureRate > 0 ? "text-danger" : "text-muted")">
+                            @((r.FailureRate * 100).ToString("0.#"))%
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private static readonly (string Label, string? Value)[] Operations =
+    [
+        ("All", null), ("App start", "app.start"), ("Page loads", "ui.load"), ("HTTP", "http.client")
+    ];
+
+    private string? _operation;
+    private string? _projectId;
+    private string? _release;
+    private int _days = 7;
+    private IReadOnlyList<PerformanceSummary>? _rows;
+    private string? _error;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private Task SelectAsync(string? operation)
+    {
+        _operation = operation;
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _error = null;
+        _rows = null;
+        try
+        {
+            _rows = await Api.GetPerformanceAsync(_projectId, _operation, _release, _days);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not reach the API: {ex.Message}";
+        }
+    }
+
+    private static string Ms(double ms) => ms >= 1000 ? $"{ms / 1000:0.00} s" : $"{ms:0} ms";
+}

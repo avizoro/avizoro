@@ -1,7 +1,7 @@
 # Demo overlay: seeds two weeks of sample data into an EMPTY database and makes
 # the instance read-only, so it can be shared with a well-known token.
 #
-#   IK_READ_TOKEN=demo docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+#   AVIZORO_READ_TOKEN=demo docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 #
 # Dashboard: http://localhost:8080  -  admin token: demo
 # (Seeding only happens on an empty database: "docker compose down -v" first if

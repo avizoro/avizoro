@@ -1,4 +1,4 @@
-using IntelligenceKit.Core.Services;
+using Avizoro.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Sample.Maui
@@ -15,7 +15,7 @@ namespace Sample.Maui
 
         private async void OnSecondPageExceptionClicked(object? sender, EventArgs e)
         {
-            var kit = Services.GetRequiredService<IIntelligenceKit>();
+            var kit = Services.GetRequiredService<IAvizoro>();
 
             try
             {

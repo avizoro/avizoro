@@ -20,42 +20,42 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # The MAUI projects (IntelligenceKit.Maui, Sample.Maui) need platform
+      # The MAUI projects (Avizoro.Maui, Sample.Maui) need platform
       # workloads/SDKs and are intentionally excluded here — CI validates the
       # framework-agnostic core, the backend, the dashboard and the test suite.
       # Building the Server transitively builds Core, Server.Contracts,
       # Server.Data and all three Server.Migrations.* provider assemblies.
       - name: Restore
         run: |
-          dotnet restore src/IntelligenceKit.Server/IntelligenceKit.Server.csproj
-          dotnet restore src/IntelligenceKit.Dashboard/IntelligenceKit.Dashboard.csproj
-          dotnet restore tests/IntelligenceKit.Core.Tests/IntelligenceKit.Core.Tests.csproj
-          dotnet restore tests/IntelligenceKit.Server.Tests/IntelligenceKit.Server.Tests.csproj
-          dotnet restore tests/IntelligenceKit.Sdk.Tests/IntelligenceKit.Sdk.Tests.csproj
+          dotnet restore src/Avizoro.Server/Avizoro.Server.csproj
+          dotnet restore src/Avizoro.Dashboard/Avizoro.Dashboard.csproj
+          dotnet restore tests/Avizoro.Core.Tests/Avizoro.Core.Tests.csproj
+          dotnet restore tests/Avizoro.Server.Tests/Avizoro.Server.Tests.csproj
+          dotnet restore tests/Avizoro.Sdk.Tests/Avizoro.Sdk.Tests.csproj
 
       - name: Build server
-        run: dotnet build src/IntelligenceKit.Server/IntelligenceKit.Server.csproj --configuration Release --no-restore
+        run: dotnet build src/Avizoro.Server/Avizoro.Server.csproj --configuration Release --no-restore
 
       - name: Build dashboard
-        run: dotnet build src/IntelligenceKit.Dashboard/IntelligenceKit.Dashboard.csproj --configuration Release --no-restore
+        run: dotnet build src/Avizoro.Dashboard/Avizoro.Dashboard.csproj --configuration Release --no-restore
 
       - name: Test (Core)
         run: >
-          dotnet test tests/IntelligenceKit.Core.Tests/IntelligenceKit.Core.Tests.csproj
+          dotnet test tests/Avizoro.Core.Tests/Avizoro.Core.Tests.csproj
           --configuration Release
           --logger "trx;LogFileName=core-test-results.trx"
           --results-directory ./TestResults
 
       - name: Test (Server integration)
         run: >
-          dotnet test tests/IntelligenceKit.Server.Tests/IntelligenceKit.Server.Tests.csproj
+          dotnet test tests/Avizoro.Server.Tests/Avizoro.Server.Tests.csproj
           --configuration Release
           --logger "trx;LogFileName=server-test-results.trx"
           --results-directory ./TestResults
 
       - name: "Test (SDKs: hosting, ASP.NET Core)"
         run: >
-          dotnet test tests/IntelligenceKit.Sdk.Tests/IntelligenceKit.Sdk.Tests.csproj
+          dotnet test tests/Avizoro.Sdk.Tests/Avizoro.Sdk.Tests.csproj
           --configuration Release
           --logger "trx;LogFileName=sdk-test-results.trx"
           --results-directory ./TestResults

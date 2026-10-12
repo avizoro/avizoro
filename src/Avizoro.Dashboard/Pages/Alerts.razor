@@ -1,0 +1,317 @@
+@page "/alerts"
+@inject ApiClient Api
+
+<PageTitle>Alerts — Avizoro</PageTitle>
+
+<h1 class="page-title mb-1">Alerts</h1>
+<p class="text-muted mb-4">Get notified on new issues, regressions or error bursts via webhook, Slack, Teams, Discord or email.</p>
+
+@if (_forbidden)
+{
+    <div class="alert alert-warning">Alert rules are managed with the <strong>admin token</strong>. A project read key can't view or change them.</div>
+}
+else if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h6 mb-3">@(_editingId is null ? "New rule" : "Edit rule")</h2>
+            <div class="row g-2">
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1">Name</label>
+                    <input class="form-control form-control-sm" @bind="_form.Name" placeholder="e.g. Prod crashes to #mobile" />
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small text-muted mb-1">When</label>
+                    <select class="form-select form-select-sm" @bind="_form.Trigger">
+                        <option value="NewIssue">New issue</option>
+                        <option value="Regression">Regression</option>
+                        <option value="Threshold">Event burst</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small text-muted mb-1">Project</label>
+                    <input class="form-control form-control-sm" @bind="_form.ProjectId" placeholder="all projects" />
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small text-muted mb-1">Channel</label>
+                    <select class="form-select form-select-sm" @bind="_form.Channel">
+                        <option>Webhook</option>
+                        <option>Slack</option>
+                        <option>Teams</option>
+                        <option>Discord</option>
+                        <option>Email</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small text-muted mb-1">Cooldown (min)</label>
+                    <input type="number" min="0" class="form-control form-control-sm" @bind="_form.CooldownMinutes" />
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label small text-muted mb-1">@(_form.Channel == "Email" ? "Recipients (comma-separated)" : "Webhook URL")</label>
+                    <input class="form-control form-control-sm" @bind="_form.Target"
+                           placeholder="@(_form.Channel == "Email" ? "oncall@example.com" : "https://hooks.slack.com/services/…")" />
+                </div>
+                @if (_form.Channel == "Webhook")
+                {
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small text-muted mb-1">Signing secret (optional)</label>
+                        <input type="password" class="form-control form-control-sm" @bind="_form.Secret"
+                               placeholder="@(_editingHasSecret ? "(unchanged)" : "HMAC-SHA256 key")" />
+                    </div>
+                }
+                @if (_form.Trigger == "Threshold")
+                {
+                    <div class="col-6 col-md-1">
+                        <label class="form-label small text-muted mb-1">Events</label>
+                        <input type="number" min="1" class="form-control form-control-sm" @bind="_form.ThresholdCount" />
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small text-muted mb-1">Within (min)</label>
+                        <input type="number" min="1" class="form-control form-control-sm" @bind="_form.ThresholdWindowMinutes" />
+                    </div>
+                }
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-3">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="rule-enabled" @bind="_form.Enabled" />
+                    <label class="form-check-label small" for="rule-enabled">Enabled</label>
+                </div>
+                <button class="btn btn-primary btn-sm ms-auto" disabled="@_saving" @onclick="SaveAsync">@(_editingId is null ? "Create rule" : "Save changes")</button>
+                @if (_editingId is not null)
+                {
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="ResetForm">Cancel</button>
+                }
+            </div>
+            @if (_formError is not null)
+            {
+                <div class="text-danger small mt-2">@_formError</div>
+            }
+        </div>
+    </div>
+
+    <h2 class="h6">Rules</h2>
+    @if (_rules is null)
+    {
+        <p class="text-muted">Loading rules…</p>
+    }
+    else if (_rules.Count == 0)
+    {
+        <div class="alert alert-info">No rules yet. Create one above to start receiving alerts.</div>
+    }
+    else
+    {
+        <div class="table-responsive mb-4">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr><th>Name</th><th>When</th><th>Project</th><th>Channel</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in _rules)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@r.Name</td>
+                            <td class="small">@Describe(r)</td>
+                            <td class="small">@(r.ProjectId ?? "all")</td>
+                            <td class="small">@r.Channel <span class="text-muted text-truncate d-inline-block align-bottom" style="max-width: 14rem" title="@r.Target">@r.Target</span></td>
+                            <td>
+                                @if (r.Enabled)
+                                {
+                                    <span class="badge text-bg-success">On</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">Off</span>
+                                }
+                                @if (_testResults.TryGetValue(r.Id, out var test))
+                                {
+                                    <span class="small ms-1 @(test is null ? "text-success" : "text-danger")">@(test ?? "Test sent ✓")</span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-outline-secondary btn-sm" @onclick="() => TestAsync(r.Id)">Test</button>
+                                <button class="btn btn-outline-primary btn-sm" @onclick="() => Edit(r)">Edit</button>
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteAsync(r.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <h2 class="h6">Recent deliveries</h2>
+    @if (_history is null || _history.Items.Count == 0)
+    {
+        <p class="text-muted small">Nothing sent yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead><tr><th>When</th><th>Rule</th><th>Trigger</th><th>Issue</th><th>Result</th></tr></thead>
+                <tbody>
+                    @foreach (var n in _history.Items)
+                    {
+                        <tr>
+                            <td class="small text-nowrap">@n.CreatedAt.ToLocalTime().ToString("g")</td>
+                            <td class="small">@n.RuleName <span class="text-muted">· @n.Channel</span></td>
+                            <td class="small">@n.Trigger</td>
+                            <td class="small">
+                                @if (n.IssueId is { } issueId)
+                                {
+                                    <a href="@($"/issues/{issueId}")">@n.IssueTitle</a>
+                                }
+                                <span class="text-muted">(@n.ProjectId)</span>
+                            </td>
+                            <td class="small">
+                                @if (n.Success is null)
+                                {
+                                    <span class="text-muted">pending</span>
+                                }
+                                else if (n.Success == true)
+                                {
+                                    <span class="text-success">sent</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger" title="@n.Error">failed: @n.Error</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    private sealed class RuleForm
+    {
+        public string Name { get; set; } = "";
+        public string Trigger { get; set; } = "NewIssue";
+        public string Channel { get; set; } = "Slack";
+        public string Target { get; set; } = "";
+        public string? ProjectId { get; set; }
+        public string? Secret { get; set; }
+        public int ThresholdCount { get; set; } = 10;
+        public int ThresholdWindowMinutes { get; set; } = 5;
+        public int CooldownMinutes { get; set; } = 60;
+        public bool Enabled { get; set; } = true;
+    }
+
+    private IReadOnlyList<AlertRuleInfo>? _rules;
+    private PagedResult<AlertNotificationInfo>? _history;
+    private readonly Dictionary<Guid, string?> _testResults = new();
+    private RuleForm _form = new();
+    private Guid? _editingId;
+    private bool _editingHasSecret;
+    private bool _saving;
+    private bool _forbidden;
+    private string? _error;
+    private string? _formError;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _rules = await Api.GetAlertRulesAsync();
+            _history = await Api.GetAlertHistoryAsync(take: 25);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            _forbidden = true;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not reach the API: {ex.Message}";
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _formError = null;
+        try
+        {
+            var request = new UpsertAlertRuleRequest(
+                _form.Name, _form.Trigger, _form.Channel, _form.Target, _form.ProjectId,
+                _form.ThresholdCount, _form.ThresholdWindowMinutes,
+                string.IsNullOrEmpty(_form.Secret) ? null : _form.Secret,
+                _form.Enabled, _form.CooldownMinutes);
+
+            var (_, error) = await Api.SaveAlertRuleAsync(_editingId, request);
+            if (error is not null)
+            {
+                _formError = error;
+                return;
+            }
+
+            ResetForm();
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _formError = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private void Edit(AlertRuleInfo r)
+    {
+        _editingId = r.Id;
+        _editingHasSecret = r.HasSecret;
+        _formError = null;
+        _form = new RuleForm
+        {
+            Name = r.Name, Trigger = r.Trigger, Channel = r.Channel, Target = r.Target, ProjectId = r.ProjectId,
+            ThresholdCount = Math.Max(1, r.ThresholdCount), ThresholdWindowMinutes = Math.Max(1, r.ThresholdWindowMinutes),
+            CooldownMinutes = r.CooldownMinutes, Enabled = r.Enabled
+        };
+    }
+
+    private void ResetForm()
+    {
+        _editingId = null;
+        _editingHasSecret = false;
+        _form = new RuleForm();
+    }
+
+    private async Task DeleteAsync(Guid id)
+    {
+        await Api.DeleteAlertRuleAsync(id);
+        if (_editingId == id)
+            ResetForm();
+        await LoadAsync();
+    }
+
+    private async Task TestAsync(Guid id)
+    {
+        _testResults.Remove(id);
+        try
+        {
+            _testResults[id] = await Api.TestAlertRuleAsync(id);
+        }
+        catch (Exception ex)
+        {
+            _testResults[id] = ex.Message;
+        }
+    }
+
+    private static string Describe(AlertRuleInfo r) => r.Trigger switch
+    {
+        "NewIssue" => "New issue",
+        "Regression" => "Regression",
+        "Threshold" => $"≥ {r.ThresholdCount} events in {r.ThresholdWindowMinutes} min",
+        _ => r.Trigger
+    } + (r.CooldownMinutes > 0 ? $" · cooldown {r.CooldownMinutes} min" : "");
+}

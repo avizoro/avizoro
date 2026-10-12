@@ -1,31 +1,31 @@
-# IntelligenceKit — full self-hosted stack: PostgreSQL + ingest/query server +
-# dashboard. Copy .env.example to .env (at minimum set IK_READ_TOKEN), then either
+# Avizoro — full self-hosted stack: PostgreSQL + ingest/query server +
+# dashboard. Copy .env.example to .env (at minimum set AVIZORO_READ_TOKEN), then either
 #
 #   docker compose pull && docker compose up -d     # prebuilt images from GHCR
 #   docker compose up --build                       # or build from this checkout
 #
 # Dashboard:  http://localhost:${DASHBOARD_PORT:-8080}
 # API:        http://localhost:${SERVER_PORT:-7099}
-name: intelligencekit
+name: avizoro
 
 services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-intelligencekit}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-intelligencekit}
-      POSTGRES_DB: ${POSTGRES_DB:-intelligencekit}
+      POSTGRES_USER: ${POSTGRES_USER:-avizoro}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-avizoro}
+      POSTGRES_DB: ${POSTGRES_DB:-avizoro}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-intelligencekit} -d ${POSTGRES_DB:-intelligencekit}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-avizoro} -d ${POSTGRES_DB:-avizoro}"]
       interval: 5s
       timeout: 5s
       retries: 10
     restart: unless-stopped
 
   server:
-    image: ghcr.io/wilsonvargas/intelligencekit-server:${IK_VERSION:-latest}
+    image: ghcr.io/avizoro/avizoro-server:${AVIZORO_VERSION:-latest}
     build:
       context: .
       dockerfile: docker/server.Dockerfile
@@ -33,9 +33,9 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       # __ maps to the ASP.NET config hierarchy (Database:Provider, etc.).
       Database__Provider: PostgreSql
-      ConnectionStrings__Events: "Host=db;Port=5432;Database=${POSTGRES_DB:-intelligencekit};Username=${POSTGRES_USER:-intelligencekit};Password=${POSTGRES_PASSWORD:-intelligencekit}"
+      ConnectionStrings__Events: "Host=db;Port=5432;Database=${POSTGRES_DB:-avizoro};Username=${POSTGRES_USER:-avizoro};Password=${POSTGRES_PASSWORD:-avizoro}"
       # Required in Production: the read API/dashboard fail closed without it.
-      Auth__ReadToken: ${IK_READ_TOKEN:?set IK_READ_TOKEN in your .env}
+      Auth__ReadToken: ${AVIZORO_READ_TOKEN:?set AVIZORO_READ_TOKEN in your .env}
     ports:
       - "${SERVER_PORT:-7099}:7099"
     depends_on:
@@ -44,7 +44,7 @@ services:
     restart: unless-stopped
 
   dashboard:
-    image: ghcr.io/wilsonvargas/intelligencekit-dashboard:${IK_VERSION:-latest}
+    image: ghcr.io/avizoro/avizoro-dashboard:${AVIZORO_VERSION:-latest}
     build:
       context: .
       dockerfile: docker/dashboard.Dockerfile

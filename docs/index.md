@@ -4,7 +4,7 @@ nav_order: 1
 permalink: /
 ---
 
-# IntelligenceKit
+# Avizoro
 {: .fs-9 }
 
 Self-hosted crash reporting, performance monitoring and release health for .NET apps: MAUI, ASP.NET Core, Blazor, WPF, WinForms, Avalonia and plain console/worker apps. It is an alternative to Sentry, App Center and Crashlytics that runs on your own server.
@@ -12,7 +12,7 @@ Self-hosted crash reporting, performance monitoring and release health for .NET 
 
 [Get started](getting-started.md){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [Try the demo](getting-started.md#try-the-demo){: .btn .fs-5 .mb-4 .mb-md-0 .mr-2 }
-[GitHub](https://github.com/wilsonvargas/IntelligenceKit){: .btn .fs-5 .mb-4 .mb-md-0 }
+[GitHub](https://github.com/avizoro/avizoro){: .btn .fs-5 .mb-4 .mb-md-0 }
 
 ![The dashboard overview](images/overview.jpg)
 
@@ -37,12 +37,12 @@ Self-hosted crash reporting, performance monitoring and release health for .NET 
 ```csharp
 // MauiProgram.cs
 builder.UseMauiApp<App>()
-       .UseIntelligenceKit("https://projectKey@your-server/my-app");
+       .UseAvizoro("https://projectKey@your-server/my-app");
 ```
 
 ```csharp
 // Program.cs (ASP.NET Core)
-builder.UseIntelligenceKit("https://projectKey@your-server/my-api");
+builder.UseAvizoro("https://projectKey@your-server/my-api");
 ```
 
 Other app types are covered in [SDKs](sdks.md).
@@ -50,7 +50,7 @@ Other app types are covered in [SDKs](sdks.md).
 ## How it fits together
 
 ```
-your app ─► IntelligenceKit SDK ─► local queue ─► IntelligenceKit.Server ─► database
+your app ─► Avizoro SDK ─► local queue ─► Avizoro.Server ─► database
                                                         │
                                                         └─► dashboard (Blazor WASM, live over SignalR)
 ```
@@ -64,4 +64,4 @@ Each event is written to a local queue before it is uploaded. If the app crashes
 - [Features](features.md): sessions, performance, symbols, alerts, feedback and privacy.
 - [Server configuration](server.md): database, auth, alerts, integrations, telemetry and demo mode.
 - [HTTP API](api.md): the endpoints the dashboard uses, for scripting and integrations.
-- [Deploying](https://github.com/wilsonvargas/IntelligenceKit/blob/master/deploy/README.md): Docker Compose, Render, Azure and Railway.
+- [Deploying](https://github.com/avizoro/avizoro/blob/master/deploy/README.md): Docker Compose, Render, Azure and Railway.

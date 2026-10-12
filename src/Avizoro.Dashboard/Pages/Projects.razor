@@ -1,0 +1,188 @@
+@page "/projects"
+@inject ApiClient Api
+
+<PageTitle>Projects — Avizoro</PageTitle>
+
+<h1 class="page-title mb-1">Projects</h1>
+<p class="text-muted mb-4">Register apps, copy their DSN, and manage the read keys that scope the dashboard to one project.</p>
+
+@if (_forbidden)
+{
+    <div class="alert alert-warning">Projects are managed with the <strong>admin token</strong>. A project read key can't view or change them.</div>
+}
+else if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else
+{
+    @if (_credentials is not null)
+    {
+        <div class="alert alert-success">
+            <div class="fw-semibold mb-2">Save these now — the read key is shown only once.</div>
+            <div class="small mb-1">DSN (put it in your app):</div>
+            <pre class="mb-2 user-select-all"><code>@Dsn(_credentials.ProjectKey, _credentials.ProjectId)</code></pre>
+            <div class="small mb-1">Read key (dashboard/API access to <strong>@_credentials.ProjectId</strong> only):</div>
+            <pre class="mb-2 user-select-all"><code>@_credentials.ReadKey</code></pre>
+            <button class="btn btn-sm btn-outline-success" @onclick="() => _credentials = null">I saved them</button>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h6 mb-3">New project</h2>
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-3">
+                    <label class="form-label small text-muted mb-1">Project id</label>
+                    <input class="form-control form-control-sm" placeholder="my-app" @bind="_newId" />
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1">Name</label>
+                    <input class="form-control form-control-sm" placeholder="My App (Android + iOS)" @bind="_newName" />
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small text-muted mb-1">Project key (optional)</label>
+                    <input class="form-control form-control-sm" placeholder="generated" @bind="_newKey" />
+                </div>
+                <div class="col-12 col-md-2">
+                    <button class="btn btn-primary btn-sm w-100" disabled="@_busy" @onclick="CreateAsync">Create</button>
+                </div>
+            </div>
+            @if (_formError is not null)
+            {
+                <div class="text-danger small mt-2">@_formError</div>
+            }
+        </div>
+    </div>
+
+    @if (_projects is null)
+    {
+        <p class="text-muted">Loading projects…</p>
+    }
+    else if (_projects.Count == 0)
+    {
+        <div class="alert alert-info">No registered projects yet.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead><tr><th>Project</th><th>DSN</th><th>Created</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var p in _projects)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold"><a href="@($"/issues?projectId={Uri.EscapeDataString(p.ProjectId)}")">@p.ProjectId</a></div>
+                                <div class="small text-muted">@p.Name</div>
+                            </td>
+                            <td><code class="small user-select-all">@Dsn(p.ProjectKey, p.ProjectId)</code></td>
+                            <td class="small text-nowrap">@p.CreatedAt.ToLocalTime().ToString("d")</td>
+                            <td class="text-end text-nowrap">
+                                @if (_confirmDelete == p.Id)
+                                {
+                                    <span class="small text-danger me-1">Delete @p.ProjectId?</span>
+                                    <button class="btn btn-danger btn-sm" disabled="@_busy" @onclick="() => DeleteAsync(p.Id)">Delete</button>
+                                    <button class="btn btn-outline-secondary btn-sm" @onclick="() => _confirmDelete = null">Cancel</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-secondary btn-sm" disabled="@_busy" @onclick="() => RotateAsync(p.Id)"
+                                            title="Issue a new read key; the old one stops working">Rotate read key</button>
+                                    <button class="btn btn-outline-danger btn-sm" @onclick="() => _confirmDelete = p.Id">Delete</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="small text-muted">
+            Deleting a project only unregisters it (its ingest stops being accepted when project validation is on); stored events are kept until retention removes them.
+        </p>
+    }
+}
+
+@code {
+    private IReadOnlyList<ProjectInfo>? _projects;
+    private ProjectCredentials? _credentials;
+    private string? _newId, _newName, _newKey;
+    private Guid? _confirmDelete;
+    private bool _busy;
+    private bool _forbidden;
+    private string? _error;
+    private string? _formError;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _projects = await Api.GetRegisteredProjectsAsync();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            _forbidden = true;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not reach the API: {ex.Message}";
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        _formError = null;
+        if (string.IsNullOrWhiteSpace(_newId))
+        {
+            _formError = "Project id is required.";
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            var (credentials, error) = await Api.CreateProjectAsync(new CreateProjectRequest(_newId.Trim(), _newName ?? "", _newKey));
+            if (error is not null)
+            {
+                _formError = error;
+                return;
+            }
+            _credentials = credentials;
+            _newId = _newName = _newKey = null;
+        });
+    }
+
+    private Task RotateAsync(Guid id) => RunAsync(async () => _credentials = await Api.RotateProjectKeyAsync(id));
+
+    private Task DeleteAsync(Guid id) => RunAsync(async () =>
+    {
+        await Api.DeleteProjectAsync(id);
+        _confirmDelete = null;
+    });
+
+    private async Task RunAsync(Func<Task> action)
+    {
+        _busy = true;
+        try
+        {
+            await action();
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _formError = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    /// <summary>The DSN an app uses to report to this server: scheme://key@host[:port]/projectId.</summary>
+    private string Dsn(string projectKey, string projectId)
+    {
+        var api = Api.BaseAddress ?? new Uri("http://localhost:7099/");
+        return $"{api.Scheme}://{projectKey}@{api.Authority}/{projectId}";
+    }
+}

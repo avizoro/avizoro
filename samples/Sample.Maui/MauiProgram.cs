@@ -1,4 +1,4 @@
-using IntelligenceKit.Maui.Extensions;
+using Avizoro.Maui.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Sample.Maui
@@ -19,8 +19,8 @@ namespace Sample.Maui
             builder
                 .UseMauiApp<App>()
                 // DSN: http://{projectKey}@{host}:{port}/{projectId}
-                // IntelligenceKit.Server runs on the host machine (http profile, port 7099).
-                .UseIntelligenceKit(Dsn, options =>
+                // Avizoro.Server runs on the host machine (http profile, port 7099).
+                .UseAvizoro(Dsn, options =>
                 {
                     // Opt-in: capture the last screen and attach it to crashes.
                     // (Off by default because screenshots can contain personal data.)

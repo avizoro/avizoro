@@ -9,17 +9,17 @@
   <PropertyGroup>
     <Version>1.1.0</Version>
     <Authors>Wilson Vargas</Authors>
-    <Company>IntelligenceKit</Company>
-    <Product>IntelligenceKit</Product>
+    <Company>Avizoro</Company>
+    <Product>Avizoro</Product>
     <Copyright>Copyright (c) Wilson Vargas</Copyright>
 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/wilsonvargas/IntelligenceKit</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/wilsonvargas/IntelligenceKit</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/avizoro/avizoro</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/avizoro/avizoro</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>observability;crash-reporting;logging;diagnostics;telemetry;maui;dotnet;sentry-alternative</PackageTags>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>https://github.com/wilsonvargas/IntelligenceKit/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/avizoro/avizoro/blob/master/CHANGELOG.md</PackageReleaseNotes>
 
     <!-- Not packable unless a project opts in. -->
     <IsPackable>false</IsPackable>

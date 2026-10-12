@@ -9,7 +9,7 @@
             Spacing="16">
 
             <Label
-                Text="IntelligenceKit Demo"
+                Text="Avizoro Demo"
                 Style="{StaticResource Headline}"
                 SemanticProperties.HeadingLevel="Level1" />
 

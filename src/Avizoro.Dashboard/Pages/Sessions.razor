@@ -1,0 +1,260 @@
+@page "/sessions"
+@implements IDisposable
+@inject ApiClient Api
+@inject NavigationManager Nav
+@inject LiveEventsClient Live
+
+<PageTitle>Sessions — Avizoro</PageTitle>
+
+<div class="d-flex align-items-center gap-3 mb-1">
+    <h1 class="page-title">Sessions</h1>
+    <span class="live-pill @(_live ? "on" : "off")">
+        <span class="live-dot @(_live ? "on" : "")"></span> @(_live ? "Live" : "Offline")
+    </span>
+</div>
+<p class="text-muted mb-4">
+    Every app session, newest first. Sessions recorded with <code>EnableSessionTimeline</code> open as a
+    step-by-step timeline.
+</p>
+
+<div class="row g-2 align-items-end mb-3">
+    <div class="col-6 col-md-3">
+        <label class="form-label small text-muted mb-1">Project</label>
+        <input class="form-control form-control-sm" placeholder="all" @bind="_projectId" @onkeydown="OnKey" />
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label small text-muted mb-1">Status</label>
+        <select class="form-select form-select-sm" @bind="_status">
+            <option value="">any</option>
+            <option value="Ok">Running</option>
+            <option value="Exited">Exited</option>
+            <option value="Crashed">Crashed</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-3 d-flex align-items-center pb-1">
+        <div class="form-check mb-0">
+            <input class="form-check-input" type="checkbox" id="with-timeline" @bind="_withTimeline" />
+            <label class="form-check-label small" for="with-timeline">Only with timeline</label>
+        </div>
+    </div>
+    <div class="col-3 col-md-1">
+        <button class="btn btn-primary btn-sm w-100" @onclick="Apply">Apply</button>
+    </div>
+    <div class="col-3 col-md-1">
+        <button class="btn btn-outline-secondary btn-sm w-100" @onclick="Clear">Clear</button>
+    </div>
+</div>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_page is null)
+{
+    <p class="text-muted">Loading sessions…</p>
+}
+else if (_page.Items.Count == 0)
+{
+    <div class="alert alert-info">
+        No sessions yet. Sessions are reported by the SDKs automatically (<code>EnableAutoSessionTracking</code>, on by default).
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Device</th>
+                    <th>OS</th>
+                    <th>Release</th>
+                    <th>Started</th>
+                    <th class="text-end">Duration</th>
+                    <th class="text-end">Errors</th>
+                    <th class="text-end">Timeline</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in _page.Items)
+                {
+                    <tr role="button" @key="s.Id" @onclick="() => Open(s.Id)">
+                        <td><SessionStatusBadge Session="s" /></td>
+                        <td>
+                            <div class="fw-semibold">@DeviceLabel(s)</div>
+                            <div class="text-muted small font-monospace">#@ShortId(s.Id) · @s.ProjectId</div>
+                        </td>
+                        <td class="text-nowrap">@(string.IsNullOrEmpty(s.OperatingSystem) ? s.Platform : s.OperatingSystem)</td>
+                        <td class="font-monospace small">@s.Release</td>
+                        <td class="text-nowrap small" title="@s.Started.ToLocalTime().ToString("F")">@Ago(s.Started)</td>
+                        <td class="text-end font-monospace small">@Duration(DisplaySeconds(s))</td>
+                        <td class="text-end font-monospace @(s.Errors > 0 ? "text-danger" : "text-muted")">@s.Errors</td>
+                        <td class="text-end font-monospace @(s.TimelineEntries > 0 ? "" : "text-muted")">
+                            @(s.TimelineEntries > 0 ? s.TimelineEntries.ToString() : "—")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="text-muted small">Showing @(_skip + 1)–@(_skip + _page.Items.Count) of @_page.Total</div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="Prev" disabled="@(_skip == 0)">Previous</button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="Next" disabled="@(!HasNext)">Next</button>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery] public string? ProjectId { get; set; }
+    [SupplyParameterFromQuery] public string? Status { get; set; }
+    [SupplyParameterFromQuery] public bool WithTimeline { get; set; }
+
+    private const int PageSize = 50;
+
+    private string? _projectId;
+    private string? _status;
+    private bool _withTimeline;
+    private int _skip;
+    private PagedResult<SessionSummary>? _page;
+    private string? _error;
+    private bool _live;
+
+    private bool HasNext => _page is not null && _skip + _page.Items.Count < _page.Total;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Live.SessionUpdated += OnSessionUpdated;
+        try
+        {
+            await Live.EnsureStartedAsync();
+            _live = Live.State == Microsoft.AspNetCore.SignalR.Client.HubConnectionState.Connected;
+        }
+        catch
+        {
+            _live = false;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _projectId = ProjectId;
+        _status = Status;
+        _withTimeline = WithTimeline;
+        _skip = 0;
+        await LoadAsync();
+    }
+
+    /// <summary>Updates rows in place; a new session shows up at the top of the first page.</summary>
+    private void OnSessionUpdated(SessionSummary s)
+    {
+        if (_page is null)
+            return;
+
+        var index = _page.Items.ToList().FindIndex(i => i.Id == s.Id);
+        if (index >= 0)
+        {
+            var items = _page.Items.ToList();
+            items[index] = s;
+            _page = _page with { Items = items };
+        }
+        else if (_skip == 0 && Matches(s))
+        {
+            var items = new List<SessionSummary> { s };
+            items.AddRange(_page.Items.Take(PageSize - 1));
+            _page = _page with { Total = _page.Total + 1, Items = items };
+        }
+        else
+        {
+            return;
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private bool Matches(SessionSummary s)
+        => (string.IsNullOrWhiteSpace(_projectId) || string.Equals(s.ProjectId, _projectId, StringComparison.OrdinalIgnoreCase))
+           && (string.IsNullOrWhiteSpace(_status) || s.Status == _status)
+           && (!_withTimeline || s.TimelineEntries > 0);
+
+    public void Dispose() => Live.SessionUpdated -= OnSessionUpdated;
+
+    private async Task LoadAsync()
+    {
+        _error = null;
+        _page = null;
+        try
+        {
+            _page = await Api.GetSessionsAsync(_projectId, _status, _withTimeline, _skip, PageSize);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not reach the API: {ex.Message}";
+        }
+    }
+
+    private void Apply()
+    {
+        var query = new List<string>();
+        if (!string.IsNullOrWhiteSpace(_projectId)) query.Add($"projectId={Uri.EscapeDataString(_projectId.Trim())}");
+        if (!string.IsNullOrWhiteSpace(_status)) query.Add($"status={_status}");
+        if (_withTimeline) query.Add("withTimeline=true");
+        Nav.NavigateTo(query.Count == 0 ? "/sessions" : $"/sessions?{string.Join('&', query)}");
+    }
+
+    private void OnKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            Apply();
+    }
+
+    private void Clear() => Nav.NavigateTo("/sessions");
+
+    private void Open(Guid id) => Nav.NavigateTo($"/sessions/{id}");
+
+    private async Task Prev()
+    {
+        _skip = Math.Max(0, _skip - PageSize);
+        await LoadAsync();
+    }
+
+    private async Task Next()
+    {
+        if (!HasNext) return;
+        _skip += PageSize;
+        await LoadAsync();
+    }
+
+    private static string DeviceLabel(SessionSummary s)
+        => !string.IsNullOrEmpty(s.DeviceModel) ? s.DeviceModel : string.IsNullOrEmpty(s.Platform) ? "Unknown device" : s.Platform;
+
+    internal static string ShortId(Guid id) => id.ToString("N")[..7];
+
+    /// <summary>
+    /// Foreground time is only reported when the app goes to the background, so a running session
+    /// shows how long it has been going instead of 0.
+    /// </summary>
+    internal static double DisplaySeconds(SessionSummary s)
+        => s is { Status: "Ok", IsAbnormal: false }
+            ? Math.Max(s.DurationSeconds, (DateTime.UtcNow - s.Started).TotalSeconds)
+            : s.DurationSeconds;
+
+    internal static string Duration(double seconds)
+    {
+        var t = TimeSpan.FromSeconds(Math.Max(0, seconds));
+        return t.TotalMinutes < 1 ? $"{t.Seconds}s"
+            : t.TotalHours < 1 ? $"{t.Minutes}m {t.Seconds:00}s"
+            : $"{(int)t.TotalHours}h {t.Minutes:00}m";
+    }
+
+    internal static string Ago(DateTime utc)
+    {
+        var d = DateTime.UtcNow - utc;
+        return d.TotalSeconds < 60 ? "just now"
+            : d.TotalMinutes < 60 ? $"{(int)d.TotalMinutes} min ago"
+            : d.TotalHours < 24 ? $"{(int)d.TotalHours} h ago"
+            : utc.ToLocalTime().ToString("g");
+    }
+}

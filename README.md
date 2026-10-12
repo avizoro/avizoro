@@ -1,22 +1,24 @@
 <p align="center">
-  <img src="docs/images/icon.png" alt="IntelligenceKit" width="128" height="128" />
+  <img src="docs/images/icon.png" alt="Avizoro" width="128" height="128" />
 </p>
 
-<h1 align="center">IntelligenceKit</h1>
+<h1 align="center">Avizoro</h1>
 
 <p align="center"><strong>Self-hosted observability &amp; crash reporting for .NET and MAUI apps — a Sentry/Crashlytics alternative for the .NET ecosystem.</strong></p>
 
 <p align="center">
-  <a href="https://www.nuget.org/packages/IntelligenceKit.Maui/"><img src="https://img.shields.io/nuget/v/IntelligenceKit.Maui?logo=nuget&label=IntelligenceKit.Maui" alt="IntelligenceKit.Maui on NuGet" /></a>
-  <a href="https://www.nuget.org/packages/IntelligenceKit.Core/"><img src="https://img.shields.io/nuget/v/IntelligenceKit.Core?logo=nuget&label=IntelligenceKit.Core" alt="IntelligenceKit.Core on NuGet" /></a>
+  <a href="https://www.nuget.org/packages/Avizoro.Maui/"><img src="https://img.shields.io/nuget/v/Avizoro.Maui?logo=nuget&label=Avizoro.Maui" alt="Avizoro.Maui on NuGet" /></a>
+  <a href="https://www.nuget.org/packages/Avizoro.Core/"><img src="https://img.shields.io/nuget/v/Avizoro.Core?logo=nuget&label=Avizoro.Core" alt="Avizoro.Core on NuGet" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
 </p>
 
-IntelligenceKit captures crashes, ANRs, logs, sessions and performance from your app, ships them to a backend you control, and shows them on a real-time dashboard with issue triage, release health and alerts. It works with **MAUI** (Android, iOS, Mac Catalyst, Windows), **ASP.NET Core**, **Blazor WebAssembly**, **WPF**, **WinForms**, **Avalonia** and plain console/worker apps. One line of setup, and no code at each capture site.
+Avizoro captures crashes, ANRs, logs, sessions and performance from your app, ships them to a backend you control, and shows them on a real-time dashboard with issue triage, release health and alerts. It works with **MAUI** (Android, iOS, Mac Catalyst, Windows), **ASP.NET Core**, **Blazor WebAssembly**, **WPF**, **WinForms**, **Avalonia** and plain console/worker apps. One line of setup, and no code at each capture site.
 
-📖 **[Documentation](https://wilsonvargas.github.io/IntelligenceKit/)** · 🧪 [Try the demo](#try-the-demo) · 🚀 [Deploy](deploy/README.md)
+> Avizoro was previously published as **IntelligenceKit**. Upgrading from 1.x: see the [CHANGELOG](CHANGELOG.md).
 
-![IntelligenceKit dashboard — live Overview](docs/images/overview.jpg)
+📖 **[Documentation](https://avizoro.github.io/avizoro/)** · 🧪 [Try the demo](#try-the-demo) · 🚀 [Deploy](deploy/README.md)
+
+![Avizoro dashboard — live Overview](docs/images/overview.jpg)
 
 <p align="center"><em>The real-time Overview — KPI tiles, errors-per-hour, exception share and top issues. Dark theme by default, with a light toggle.</em></p>
 
@@ -26,11 +28,11 @@ IntelligenceKit captures crashes, ANRs, logs, sessions and performance from your
 
 ## Why
 
-The .NET/MAUI ecosystem lacks a lightweight, self-hostable crash + observability stack. Commercial options (Sentry, App Center, Firebase Crashlytics) are either shutting down for .NET, priced per-seat, or not tailored to MAUI. IntelligenceKit aims to be:
+The .NET/MAUI ecosystem lacks a lightweight, self-hostable crash + observability stack. Commercial options (Sentry, App Center, Firebase Crashlytics) are either shutting down for .NET, priced per-seat, or not tailored to MAUI. Avizoro aims to be:
 
 - **MAUI-native** — proper crash capture on Android and iOS, device context, last-screen capture.
 - **Self-hosted** — your data, your server, your database.
-- **One-line integration** — `builder.UseIntelligenceKit(dsn)` and you're done.
+- **One-line integration** — `builder.UseAvizoro(dsn)` and you're done.
 - **All of .NET** — the core is framework-agnostic, with SDKs for MAUI, ASP.NET Core, Blazor, WPF, WinForms, Avalonia and generic hosts.
 
 ## Features
@@ -74,19 +76,19 @@ The .NET/MAUI ecosystem lacks a lightweight, self-hostable crash + observability
 
 ## Architecture
 
-![IntelligenceKit architecture](docs/images/architecture.png)
+![Avizoro architecture](docs/images/architecture.png)
 
 Dependency direction (nothing depends on MAUI except the MAUI SDK):
 
 ```
-Sample.Maui ─► IntelligenceKit.Maui ─────────────┐
-IntelligenceKit.AspNetCore / Blazor / Wpf /      ├─► Extensions.Logging ─► IntelligenceKit.Core
-  WinForms / Avalonia ─► IntelligenceKit.Hosting ┘
-IntelligenceKit.Server    ─► Core, Server.Contracts, Server.Data, Server.Migrations.*
-IntelligenceKit.Dashboard ─► Server.Contracts
+Sample.Maui ─► Avizoro.Maui ─────────────┐
+Avizoro.AspNetCore / Blazor / Wpf /      ├─► Extensions.Logging ─► Avizoro.Core
+  WinForms / Avalonia ─► Avizoro.Hosting ┘
+Avizoro.Server    ─► Core, Server.Contracts, Server.Data, Server.Migrations.*
+Avizoro.Dashboard ─► Server.Contracts
 ```
 
-Every event flows through a single funnel (`IntelligenceKitService.Enrich()` → persist → upload), so app/device/runtime/scope context is attached in one place and no capture site fills it in by hand.
+Every event flows through a single funnel (`AvizoroService.Enrich()` → persist → upload), so app/device/runtime/scope context is attached in one place and no capture site fills it in by hand.
 
 ## Repository layout
 
@@ -99,7 +101,7 @@ docs/       The documentation site (GitHub Pages)
 deploy/     Render, Azure and Railway templates
 ```
 
-Everything targets **.NET 10**. The solution is `IntelligenceKit.slnx` (the XML solution format).
+Everything targets **.NET 10**. The solution is `Avizoro.slnx` (the XML solution format).
 
 ## Quick start
 
@@ -108,7 +110,7 @@ Everything targets **.NET 10**. The solution is `IntelligenceKit.slnx` (the XML 
 Two weeks of sample data (releases, a regression, ANRs, slow endpoints, user feedback) in a read-only instance:
 
 ```bash
-IK_READ_TOKEN=demo docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+AVIZORO_READ_TOKEN=demo docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
 ```
 
 Open **http://localhost:8080** and sign in with `demo`.
@@ -118,7 +120,7 @@ Open **http://localhost:8080** and sign in with `demo`.
 The fastest path — PostgreSQL + server + dashboard in a single command:
 
 ```bash
-cp .env.example .env      # then set IK_READ_TOKEN to a long random value
+cp .env.example .env      # then set AVIZORO_READ_TOKEN to a long random value
 docker compose up -d       # prebuilt images from GHCR; add --build to build from source
 ```
 
@@ -133,7 +135,7 @@ The three pieces run independently. Start the **server** first (the dashboard an
 ### 1. The server (ingest + query API)
 
 ```bash
-dotnet run --project src/IntelligenceKit.Server
+dotnet run --project src/Avizoro.Server
 ```
 
 - Listens on **`http://0.0.0.0:7099`** (the `http` launch profile).
@@ -149,11 +151,11 @@ curl http://localhost:7099/projects      # → [] until events arrive
 ### 2. The dashboard (Blazor WebAssembly)
 
 ```bash
-dotnet run --project src/IntelligenceKit.Dashboard
+dotnet run --project src/Avizoro.Dashboard
 ```
 
 - Open the printed URL (e.g. **`http://localhost:5292`**).
-- It reads the API address from `src/IntelligenceKit.Dashboard/wwwroot/appsettings.json`:
+- It reads the API address from `src/Avizoro.Dashboard/wwwroot/appsettings.json`:
 
   ```json
   { "ApiBaseUrl": "http://localhost:7099" }
@@ -163,10 +165,10 @@ dotnet run --project src/IntelligenceKit.Dashboard
 
 ### 3. The SDK in your MAUI app
 
-**Install** — from NuGet ([IntelligenceKit.Maui](https://www.nuget.org/packages/IntelligenceKit.Maui/) pulls in [IntelligenceKit.Core](https://www.nuget.org/packages/IntelligenceKit.Core/) automatically):
+**Install** — from NuGet ([Avizoro.Maui](https://www.nuget.org/packages/Avizoro.Maui/) pulls in [Avizoro.Core](https://www.nuget.org/packages/Avizoro.Core/) automatically):
 
 ```bash
-dotnet add package IntelligenceKit.Maui
+dotnet add package Avizoro.Maui
 ```
 
 **Wire it up** — a single line in `MauiProgram.cs`:
@@ -174,27 +176,27 @@ dotnet add package IntelligenceKit.Maui
 ```csharp
 builder
     .UseMauiApp<App>()
-    .UseIntelligenceKit("http://demo-key@your-server:7099/my-project");
+    .UseAvizoro("http://demo-key@your-server:7099/my-project");
 ```
 
 That one call registers crash capture, the offline queue, the uploader, context/breadcrumb tracking, and (opt-in) screen capture. App name and version are auto-detected. The DSN format is explained in [Configuration](#dsn).
 
 > **Android emulator:** it can't reach your host via `localhost`. Use the special alias **`10.0.2.2`** to point at the server running on your machine:
-> `UseIntelligenceKit("http://demo-key@10.0.2.2:7099/my-project")`.
+> `UseAvizoro("http://demo-key@10.0.2.2:7099/my-project")`.
 
 **Other app types** use the same DSN:
 
 ```csharp
-builder.UseIntelligenceKit(dsn);                     // ASP.NET Core, or Blazor WebAssembly
-IntelligenceKitWpf.Init(dsn);                        // WPF (App constructor)
-IntelligenceKitWinForms.Init(dsn);                   // WinForms (Main)
-AppBuilder.Configure<App>().UseIntelligenceKit(dsn); // Avalonia
-services.AddIntelligenceKit(dsn);                    // console apps, workers, services
+builder.UseAvizoro(dsn);                     // ASP.NET Core, or Blazor WebAssembly
+AvizoroWpf.Init(dsn);                        // WPF (App constructor)
+AvizoroWinForms.Init(dsn);                   // WinForms (Main)
+AppBuilder.Configure<App>().UseAvizoro(dsn); // Avalonia
+services.AddAvizoro(dsn);                    // console apps, workers, services
 ```
 
-See [SDKs](https://wilsonvargas.github.io/IntelligenceKit/sdks) for the details of each one.
+See [SDKs](https://avizoro.github.io/avizoro/sdks) for the details of each one.
 
-**Use it in code** (`IIntelligenceKit` is injected via DI):
+**Use it in code** (`IAvizoro` is injected via DI):
 
 ```csharp
 kit.SetUser("anon-123");                       // optional, anonymous identifier
@@ -226,12 +228,12 @@ http://{projectKey}@{host}:{port}/{projectId}
 
 ### Database provider (server)
 
-Set in `src/IntelligenceKit.Server/appsettings.json`:
+Set in `src/Avizoro.Server/appsettings.json`:
 
 ```jsonc
 {
   "Database": { "Provider": "Sqlite" },          // Sqlite | PostgreSql | SqlServer
-  "ConnectionStrings": { "Events": "Data Source=intelligencekit.db" }
+  "ConnectionStrings": { "Events": "Data Source=avizoro.db" }
 }
 ```
 
@@ -241,8 +243,8 @@ Because EF migrations are provider-specific, each provider has its own migration
 
 ```bash
 dotnet ef migrations add <Name> \
-  --project src/IntelligenceKit.Server.Migrations.Sqlite \
-  --startup-project src/IntelligenceKit.Server.Migrations.Sqlite
+  --project src/Avizoro.Server.Migrations.Sqlite \
+  --startup-project src/Avizoro.Server.Migrations.Sqlite
 ```
 
 A schema change means regenerating the migration in all three provider projects.
@@ -270,8 +272,8 @@ single set-based delete per table (works on all three providers). With
 The **read side** — every query endpoint plus the SignalR hub and the dashboard — is gated by a single shared admin token. Set it on the server:
 
 ```jsonc
-// src/IntelligenceKit.Server/appsettings.json
-"Auth": { "ReadToken": "ik_admin_<a-long-random-string>" }
+// src/Avizoro.Server/appsettings.json
+"Auth": { "ReadToken": "avizoro_admin_<a-long-random-string>" }
 ```
 
 The admin token sees **every** project. Present it as `Authorization: Bearer <token>` (the dashboard prompts for it once and stores it in the browser). Behaviour when the token is **not** set: reads are **open in Development** (zero-config local runs) and **locked in Production** (fail-closed), so a misconfigured deployment never serves data unprotected.
@@ -310,12 +312,12 @@ Next:
 
 ## Versioning and API stability
 
-IntelligenceKit follows [Semantic Versioning](https://semver.org/). As of `1.0.0`
-the **public API of the IntelligenceKit SDK NuGet packages** (`Core`, `Maui`,
+Avizoro follows [Semantic Versioning](https://semver.org/). As of `1.0.0`
+the **public API of the Avizoro SDK NuGet packages** (`Core`, `Maui`,
 `Hosting`, `Extensions.Logging`, `AspNetCore`, `Blazor`, `Wpf`, `WinForms`, `Avalonia`)
 is stable: no breaking changes without a major (`2.0.0`) bump. That
-covers `UseIntelligenceKit` and the other entry points, `IIntelligenceKit`,
-`IntelligenceOptions`, the domain model and the public abstractions.
+covers `UseAvizoro` and the other entry points, `IAvizoro`,
+`AvizoroOptions`, the domain model and the public abstractions.
 
 Not covered by the SemVer guarantee (may change in a minor release): the server's
 HTTP endpoints and database schema, the dashboard, and the DSN/wire format — though
@@ -324,7 +326,7 @@ these are treated with care and documented in the [CHANGELOG](CHANGELOG.md).
 ## Building from source
 
 ```bash
-dotnet build IntelligenceKit.slnx
+dotnet build Avizoro.slnx
 ```
 
 Requires the .NET 10 SDK, and the MAUI workloads (`dotnet workload install maui`) to build the MAUI/sample projects.
