@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst;net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0;net10.0-windows10.0.19041.0</TargetFrameworks>
 
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
@@ -40,13 +40,22 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <!-- Declares the MAUI dependency on the published package (and clears MA002). -->
-    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.20" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.11" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
     <!-- Pin the native SQLite bundle to a patched version; the one pulled in
          transitively (2.1.11) has a known high-severity advisory (GHSA-2m69-gcr7-jv3q). -->
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.13" />
+  </ItemGroup>
+
+  <!-- Framework-versioned dependencies: each target gets the package line that matches it.
+       Microsoft.Maui.Controls declares the MAUI dependency on the published package (and clears MA002). -->
+  <ItemGroup Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) == '9.0'">
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) == '10.0'">
+    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.20" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
   </ItemGroup>
 
 	<ItemGroup>

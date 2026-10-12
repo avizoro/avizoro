@@ -9,6 +9,15 @@ is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stabili
 
 ## [Unreleased]
 
+### Added
+
+- **.NET 8 and .NET 9 support** in the SDK packages. `Avizoro.Core`, `Avizoro.Hosting`,
+  `Avizoro.Extensions.Logging`, `Avizoro.AspNetCore`, `Avizoro.Blazor`, `Avizoro.Avalonia`,
+  `Avizoro.Wpf` and `Avizoro.WinForms` target `net8.0`, `net9.0` and `net10.0`; each target depends
+  on the matching `Microsoft.Extensions.*` / ASP.NET Core package line. `Avizoro.Maui` targets .NET 9
+  and .NET 10 (the .NET 10 SDK can no longer build MAUI for .NET 8). The server and the dashboard
+  still run on .NET 10.
+
 ## [2.0.1] - 2026-10-12
 
 A dashboard-only release: the SDK packages are unchanged and stay at `2.0.0`.

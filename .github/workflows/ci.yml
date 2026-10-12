@@ -15,10 +15,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET 10
+      # The SDK packages and their tests target net8.0, net9.0 and net10.0: the
+      # .NET 10 SDK builds all three, the older runtimes are needed to run the tests.
+      - name: Setup .NET 8, 9 and 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
 
       # The MAUI projects (Avizoro.Maui, Sample.Maui) need platform
       # workloads/SDKs and are intentionally excluded here — CI validates the

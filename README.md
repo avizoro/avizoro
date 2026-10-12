@@ -101,7 +101,7 @@ docs/       The documentation site (GitHub Pages)
 deploy/     Render, Azure and Railway templates
 ```
 
-Everything targets **.NET 10**. The solution is `Avizoro.slnx` (the XML solution format).
+The SDK packages target **.NET 8, 9 and 10** (`Avizoro.Maui`: .NET 9 and 10); the server, the dashboard and the sample run on .NET 10. The solution is `Avizoro.slnx` (the XML solution format).
 
 ## Quick start
 
@@ -128,7 +128,7 @@ Dashboard on **http://localhost:8080**, API on **http://localhost:7099**. The se
 
 ### Run from source
 
-**Prerequisites:** the [.NET 10 SDK](https://dotnet.microsoft.com/download), plus the MAUI workloads (`dotnet workload install maui`) if you're building the SDK/sample.
+**Prerequisites:** the [.NET 10 SDK](https://dotnet.microsoft.com/download) (it also builds the .NET 8 and 9 targets; running the tests needs those two runtimes), plus the MAUI workloads (`dotnet workload install maui`) if you're building the SDK/sample.
 
 The three pieces run independently. Start the **server** first (the dashboard and the app both talk to it).
 
