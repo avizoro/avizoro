@@ -7,15 +7,6 @@ All notable changes to IntelligenceKit are documented here. The format is based 
 The public API of the `Avizoro.Core` and `Avizoro.Maui` NuGet packages
 is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stability)).
 
-## [Unreleased]
-
-### Changed
-
-- **New logo**: an "A" with a pulse line and signal arcs replaces the "ik" monogram in the package icon,
-  the dashboard icon and the favicon. The source is `docs/images/icon.svg`.
-- **Dashboard accent** is teal in both themes (was blue/indigo), matching the logo. Status colors
-  (red, amber, green) are unchanged.
-
 ## [2.0.0] - 2026-10-12
 
 **IntelligenceKit is now Avizoro.** This is a breaking release for apps that reference the SDK:
@@ -45,6 +36,10 @@ renamed server keeps accepting events from 1.x SDKs and keeps its database.
   `COMPOSE_PROJECT_NAME=intelligencekit` and keep your `POSTGRES_*` values in `.env`.
 - New project and read keys start with `avzp_` and `avzr_`; existing `ikp_` and `ikr_` keys keep working.
 - The dashboard stores its token and theme under new browser keys, so it asks for the token once more.
+- **New logo**: an "A" with a pulse line and signal arcs replaces the "ik" monogram in the package icon,
+  the dashboard icon and the favicon. The source is `docs/images/icon.svg`.
+- **Dashboard accent** is teal in both themes (was blue/indigo), matching the logo. Status colors
+  (red, amber, green) are unchanged.
 
 ### Compatibility with 1.x
 
