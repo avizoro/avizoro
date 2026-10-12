@@ -16,40 +16,6 @@ renamed server keeps accepting events from 1.x SDKs and keeps its database.
 > **Upgrade the server first** if you turn on `EnableSessionTimeline`: an older server stores
 > timeline batches as ordinary events. The server migrates its database on startup.
 
-### Changed
-
-- **Packages**: `IntelligenceKit.*` is published as `Avizoro.*` (`Avizoro.Core`, `Avizoro.Maui`,
-  `Avizoro.Hosting`, `Avizoro.Extensions.Logging`, `Avizoro.AspNetCore`, `Avizoro.Blazor`, `Avizoro.Wpf`,
-  `Avizoro.WinForms`, `Avizoro.Avalonia`). The old packages get no further releases.
-- **API names**: namespaces `IntelligenceKit.*` are `Avizoro.*`; `UseIntelligenceKit` / `AddIntelligenceKit`
-  are `UseAvizoro` / `AddAvizoro`; `IIntelligenceKit` is `IAvizoro`; `IntelligenceKitSdk` is `AvizoroSdk`;
-  `IntelligenceEvent`, `IntelligenceOptions`, `IntelligenceScope` and `IntelligenceDsn` are `AvizoroEvent`,
-  `AvizoroOptions`, `AvizoroScope` and `AvizoroDsn`. Members and behavior are unchanged, so upgrading is
-  a find-and-replace. The logging provider alias is `Avizoro` (`Logging:Avizoro` in configuration).
-- **Symbol upload (MSBuild)**: the `IntelligenceKit*` properties are `Avizoro*`, and `IK_ADMIN_TOKEN` is
-  `AVIZORO_ADMIN_TOKEN`.
-- **Server metrics**: the meter is `Avizoro.Server` and the instruments are `avizoro.*` (were `ik.*`), so
-  Prometheus names change from `ik_…` to `avizoro_…`. Update dashboards and alerts that use them.
-- **Docker**: images are `avizoro-server` and `avizoro-dashboard`. In `docker-compose.yml` the variables
-  are `AVIZORO_READ_TOKEN` and `AVIZORO_VERSION` (were `IK_…`), and the Compose project name and the
-  default Postgres user/database are `avizoro`. To keep an existing Compose volume, set
-  `COMPOSE_PROJECT_NAME=intelligencekit` and keep your `POSTGRES_*` values in `.env`.
-- New project and read keys start with `avzp_` and `avzr_`; existing `ikp_` and `ikr_` keys keep working.
-- The dashboard stores its token and theme under new browser keys, so it asks for the token once more.
-- **New logo**: an "A" with a pulse line and signal arcs replaces the "ik" monogram in the package icon,
-  the dashboard icon and the favicon. The source is `docs/images/icon.svg`.
-- **Dashboard accent** is teal in both themes (was blue/indigo), matching the logo. Status colors
-  (red, amber, green) are unchanged.
-
-### Compatibility with 1.x
-
-- The server accepts the ingest header `X-IntelligenceKit-Key` as well as `X-Avizoro-Key`.
-- Signed alert webhooks carry both `X-Avizoro-Signature` and `X-IntelligenceKit-Signature`.
-- A SQLite server configured with the default `avizoro.db` keeps using an existing `intelligencekit.db`
-  in the same folder.
-- An app upgraded from a 1.x SDK keeps its installation id and its unsent events (MAUI and the
-  hosting/desktop SDKs move their offline queue on first start).
-
 ### Added
 
 - **Session timeline** (`EnableSessionTimeline`, off by default): the SDK records the whole session
@@ -70,6 +36,37 @@ renamed server keeps accepting events from 1.x SDKs and keeps its database.
   `avizoro.timeline.entries.ingested` metric; retention also prunes timeline entries. Migration
   `SessionTimeline` for SQLite, PostgreSQL and SQL Server.
 - Demo data includes recent sessions with a timeline, one of them crashing on "Pay".
+
+### Changed
+
+- **BREAKING (since `1.1.0`): packages are renamed.** `IntelligenceKit.*` is published as `Avizoro.*` (`Avizoro.Core`, `Avizoro.Maui`,
+  `Avizoro.Hosting`, `Avizoro.Extensions.Logging`, `Avizoro.AspNetCore`, `Avizoro.Blazor`, `Avizoro.Wpf`,
+  `Avizoro.WinForms`, `Avizoro.Avalonia`). The old packages get no further releases.
+- **BREAKING (since `1.1.0`): API names are renamed.** Namespaces `IntelligenceKit.*` are `Avizoro.*`; `UseIntelligenceKit` / `AddIntelligenceKit`
+  are `UseAvizoro` / `AddAvizoro`; `IIntelligenceKit` is `IAvizoro`; `IntelligenceKitSdk` is `AvizoroSdk`;
+  `IntelligenceEvent`, `IntelligenceOptions`, `IntelligenceScope` and `IntelligenceDsn` are `AvizoroEvent`,
+  `AvizoroOptions`, `AvizoroScope` and `AvizoroDsn`. Members and behavior are unchanged, so upgrading is
+  a find-and-replace. The logging provider alias is `Avizoro` (`Logging:Avizoro` in configuration).
+- **Symbol upload (MSBuild)**: the `IntelligenceKit*` properties are `Avizoro*`, and `IK_ADMIN_TOKEN` is
+  `AVIZORO_ADMIN_TOKEN`.
+- **Server metrics**: the meter is `Avizoro.Server` and the instruments are `avizoro.*` (were `ik.*`), so
+  Prometheus names change from `ik_…` to `avizoro_…`. Update dashboards and alerts that use them.
+- **Docker**: images are `avizoro-server` and `avizoro-dashboard`. In `docker-compose.yml` the variables
+  are `AVIZORO_READ_TOKEN` and `AVIZORO_VERSION` (were `IK_…`), and the Compose project name and the
+  default Postgres user/database are `avizoro`. To keep an existing Compose volume, set
+  `COMPOSE_PROJECT_NAME=intelligencekit` and keep your `POSTGRES_*` values in `.env`.
+- New project and read keys start with `avzp_` and `avzr_`; existing `ikp_` and `ikr_` keys keep working.
+- The dashboard stores its token and theme under new browser keys, so it asks for the token once more.
+- **New logo**: an "A" with a pulse line and signal arcs replaces the "ik" monogram in the package icon,
+  the dashboard icon and the favicon. The source is `docs/images/icon.svg`.
+- **Dashboard accent** is teal in both themes (was blue/indigo), matching the logo. Status colors
+  (red, amber, green) are unchanged.
+- The server accepts the ingest header `X-IntelligenceKit-Key` as well as `X-Avizoro-Key`.
+- Signed alert webhooks carry both `X-Avizoro-Signature` and `X-IntelligenceKit-Signature`.
+- A SQLite server configured with the default `avizoro.db` keeps using an existing `intelligencekit.db`
+  in the same folder.
+- An app upgraded from a 1.x SDK keeps its installation id and its unsent events (MAUI and the
+  hosting/desktop SDKs move their offline queue on first start).
 
 ## [1.1.0] - 2026-09-24
 
@@ -195,6 +192,6 @@ First stable release. The API is now frozen under SemVer.
   real-time dashboard, read-side auth and issue grouping.
 
 [2.0.0]: https://github.com/avizoro/avizoro/releases/tag/v2.0.0
-[1.1.0]: https://github.com/wilsonvargas/IntelligenceKit/releases/tag/v1.1.0
-[1.0.0]: https://github.com/wilsonvargas/IntelligenceKit/releases/tag/v1.0.0
-[0.1.0-alpha.1]: https://github.com/wilsonvargas/IntelligenceKit/releases/tag/v0.1.0-alpha.1
+[1.1.0]: https://github.com/avizoro/avizoro/releases/tag/v1.1.0
+[1.0.0]: https://github.com/avizoro/avizoro/releases/tag/v1.0.0
+[0.1.0-alpha.1]: https://github.com/avizoro/avizoro/releases/tag/0.1.0-alpha.1
