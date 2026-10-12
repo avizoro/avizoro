@@ -19,9 +19,9 @@
     --avz-muted: #8b949e;
     --avz-faint: #6e7681;
 
-    --avz-accent: #7c9dff;
-    --avz-accent-strong: #5b78ff;
-    --avz-accent-soft: rgba(124, 157, 255, 0.14);
+    --avz-accent: #2dd4bf;
+    --avz-accent-strong: #0d9488;
+    --avz-accent-soft: rgba(45, 212, 191, 0.14);
 
     --avz-danger: #ff6b6b;
     --avz-exception: #f2545b;
@@ -44,10 +44,10 @@
     --bs-card-bg: var(--avz-surface);
     --bs-card-border-color: var(--avz-border);
     --bs-primary: var(--avz-accent-strong);
-    --bs-primary-rgb: 91, 120, 255;
+    --bs-primary-rgb: 13, 148, 136;
     --bs-link-color: var(--avz-accent);
-    --bs-link-color-rgb: 124, 157, 255;
-    --bs-link-hover-color: #9db4ff;
+    --bs-link-color-rgb: 45, 212, 191;
+    --bs-link-hover-color: #5eead4;
     --bs-table-bg: transparent;
     --bs-table-color: var(--avz-text);
     --bs-table-hover-bg: var(--avz-surface-hover);
@@ -69,9 +69,9 @@
     --avz-muted: #5c6570;
     --avz-faint: #8891a0;
 
-    --avz-accent: #4f46e5;
-    --avz-accent-strong: #4338ca;
-    --avz-accent-soft: rgba(79, 70, 229, 0.10);
+    --avz-accent: #0f766e;
+    --avz-accent-strong: #115e59;
+    --avz-accent-soft: rgba(15, 118, 110, 0.10);
 
     --avz-danger: #e5484d;
     --avz-exception: #dc2f38;
@@ -93,9 +93,9 @@
     --bs-card-bg: var(--avz-surface);
     --bs-card-border-color: var(--avz-border);
     --bs-primary: var(--avz-accent);
-    --bs-primary-rgb: 79, 70, 229;
+    --bs-primary-rgb: 15, 118, 110;
     --bs-link-color: var(--avz-accent);
-    --bs-link-color-rgb: 79, 70, 229;
+    --bs-link-color-rgb: 15, 118, 110;
     --bs-link-hover-color: var(--avz-accent-strong);
     --bs-table-hover-bg: var(--avz-surface-hover);
     --bs-table-border-color: var(--avz-border);
@@ -496,7 +496,7 @@ table tbody tr[role="button"] { cursor: pointer; }
         transform-origin: 50% 50%; transform: rotate(-90deg);
     }
         .loading-progress circle:last-child {
-            stroke: #5b78ff;
+            stroke: #14b8a6;
             stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
             transition: stroke-dasharray 0.05s ease-in-out;
         }
