@@ -7,7 +7,7 @@ All notable changes to IntelligenceKit are documented here. The format is based 
 The public API of the `Avizoro.Core` and `Avizoro.Maui` NuGet packages
 is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stability)).
 
-## [Unreleased]
+## [2.0.0] - 2026-10-12
 
 **IntelligenceKit is now Avizoro.** This is a breaking release for apps that reference the SDK:
 package IDs, namespaces and type names change. The wire protocol and stored data are compatible, so a
@@ -190,6 +190,7 @@ First stable release. The API is now frozen under SemVer.
   store-and-forward, rich context, last-screen capture, multi-provider backend,
   real-time dashboard, read-side auth and issue grouping.
 
+[2.0.0]: https://github.com/avizoro/avizoro/releases/tag/v2.0.0
 [1.1.0]: https://github.com/wilsonvargas/IntelligenceKit/releases/tag/v1.1.0
 [1.0.0]: https://github.com/wilsonvargas/IntelligenceKit/releases/tag/v1.0.0
 [0.1.0-alpha.1]: https://github.com/wilsonvargas/IntelligenceKit/releases/tag/v0.1.0-alpha.1
