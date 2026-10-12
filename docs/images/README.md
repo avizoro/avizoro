@@ -1,12 +1,11 @@
 # Screenshot assets
 
-The main `README.md` references the PNGs below. Drop the captured images here with
+The main `README.md` references the images below. Drop the captured images here with
 these exact filenames and the README renders them automatically.
 
-Capture against a server that has some seeded events (run the sample app and press
-its buttons a few times so issues, breadcrumbs and a screenshot exist). Use a wide
-browser window (~1440px) so the layout breathes, and prefer the **dark theme** for
-the hero shots.
+Capture against a server started with demo data (`Demo__Seed=true` on an empty database),
+so the shots show synthetic events. The current images are 1440×810 viewports rendered at 2×
+and scaled to 1568 px wide, in the **dark theme** except `theme-light.jpg`.
 
 | File | What to capture |
 | --- | --- |

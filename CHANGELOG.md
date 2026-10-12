@@ -7,6 +7,13 @@ All notable changes to IntelligenceKit are documented here. The format is based 
 The public API of the `Avizoro.Core` and `Avizoro.Maui` NuGet packages
 is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stability)).
 
+## [Unreleased]
+
+### Fixed
+
+- Dashboard: primary buttons, active filter tabs, checked switches and focus rings used
+  Bootstrap's default blue instead of the teal accent.
+
 ## [2.0.0] - 2026-10-12
 
 **IntelligenceKit is now Avizoro.** This is a breaking release for apps that reference the SDK:

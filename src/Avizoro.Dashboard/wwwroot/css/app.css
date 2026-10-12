@@ -115,6 +115,45 @@ h1:focus { outline: none; }
 
 a, .btn-link { color: var(--avz-accent); }
 
+/* Bootstrap compiles its blue into these components, so point them at the accent. */
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #0f766e;
+    --bs-btn-border-color: #0f766e;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #115e59;
+    --bs-btn-hover-border-color: #115e59;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #134e4a;
+    --bs-btn-active-border-color: #134e4a;
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #0f766e;
+    --bs-btn-disabled-border-color: #0f766e;
+    --bs-btn-focus-shadow-rgb: var(--bs-link-color-rgb);
+}
+.btn-outline-primary {
+    --bs-btn-color: var(--avz-accent);
+    --bs-btn-border-color: var(--avz-accent);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #0f766e;
+    --bs-btn-hover-border-color: #0f766e;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #115e59;
+    --bs-btn-active-border-color: #115e59;
+    --bs-btn-disabled-color: var(--avz-accent);
+    --bs-btn-disabled-border-color: var(--avz-accent);
+    --bs-btn-focus-shadow-rgb: var(--bs-link-color-rgb);
+}
+.nav-pills {
+    --bs-nav-pills-link-active-color: #fff;
+    --bs-nav-pills-link-active-bg: #0f766e;
+}
+.form-check-input:checked { background-color: #0f766e; border-color: #0f766e; }
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+    border-color: var(--avz-accent);
+    box-shadow: 0 0 0 .2rem rgba(var(--bs-link-color-rgb), .25);
+}
+
 .text-muted { color: var(--avz-muted) !important; }
 
 code { color: var(--avz-accent); }
