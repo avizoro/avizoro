@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Avizoro"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#06161B"/><stop offset="0.55" stop-color="#0A2A33"/><stop offset="1" stop-color="#0E5A66"/></linearGradient>
+<linearGradient id="ac" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2DD4BF"/><stop offset="1" stop-color="#7DE3F4"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/>
+<path d="M175 69 A115 115 0 0 1 337 69" fill="none" stroke="url(#ac)" stroke-width="16" stroke-linecap="round" opacity="0.75"/>
+<path d="M206 101 A70 70 0 0 1 306 101" fill="none" stroke="url(#ac)" stroke-width="16" stroke-linecap="round"/>
+<path d="M128 410 L256 168 L384 410" fill="none" stroke="#fff" stroke-width="54" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M186 338 H228 L248 300 L270 364 L288 338 H326" fill="none" stroke="url(#ac)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
