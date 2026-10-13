@@ -22,7 +22,7 @@ Avizoro captures crashes, ANRs, logs, sessions and performance from your app, sh
 
 <p align="center"><em>The real-time Overview — KPI tiles, errors-per-hour, exception share and top issues. Dark theme by default, with a light toggle.</em></p>
 
-> **Status: stable (`2.0.0`).** The public SDK API follows [Semantic Versioning](#versioning-and-api-stability). The read side is authenticated (admin token or per-project read key), and the stack is self-hostable with Docker or one-click cloud templates. See the [CHANGELOG](CHANGELOG.md) for what shipped. Feedback and contributions are welcome.
+> **Status: stable (`2.1.0`).** The public SDK API follows [Semantic Versioning](#versioning-and-api-stability). The read side is authenticated (admin token or per-project read key), and the stack is self-hostable with Docker or one-click cloud templates. See the [CHANGELOG](CHANGELOG.md) for what shipped. Feedback and contributions are welcome.
 
 ---
 
