@@ -1,7 +1,7 @@
 # Avizoro.Maui
 
 **One-line, self-hosted crash reporting & observability for .NET MAUI** on Android,
-iOS, Mac Catalyst and Windows — a Sentry/App Center/Crashlytics alternative for the
+iOS and Windows — a Sentry/App Center/Crashlytics alternative for the
 .NET ecosystem. Ships crashes, ANRs, logs, sessions and performance to a backend you
 control, viewable on a real-time dashboard.
 

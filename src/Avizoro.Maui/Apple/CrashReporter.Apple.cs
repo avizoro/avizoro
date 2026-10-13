@@ -1,4 +1,4 @@
-#if IOS || MACCATALYST
+#if IOS
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -18,8 +18,7 @@ public unsafe partial class CrashReporter
 
     partial void RegisterPlatformHandlers()
     {
-        // Shared by iOS and Mac Catalyst (kept outside Platforms/iOS so both TFMs
-        // compile it). Catches managed exceptions as they cross into native
+        // Catches managed exceptions as they cross into native
         // (Objective-C) code, which is where most iOS crashes surface in a .NET MAUI app. Pure
         // managed unhandled exceptions are already handled by the shared
         // AppDomain hook in CrashReporter.cs.

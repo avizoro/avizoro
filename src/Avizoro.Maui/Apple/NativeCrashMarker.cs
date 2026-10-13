@@ -1,4 +1,4 @@
-#if IOS || MACCATALYST
+#if IOS
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;

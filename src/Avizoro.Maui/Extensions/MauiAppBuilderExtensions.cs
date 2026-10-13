@@ -127,7 +127,7 @@ public static class MauiAppBuilderExtensions
         events.AddAndroid(android => android
             .OnStart(activity => OnForeground())
             .OnStop(activity => OnBackground()));
-#elif IOS || MACCATALYST
+#elif IOS
         events.AddiOS(ios => ios
             .WillEnterForeground(application => OnForeground())
             .DidEnterBackground(application => OnBackground()));
@@ -151,7 +151,7 @@ public static class MauiAppBuilderExtensions
         var services = IPlatformApplication.Current?.Services;
         var sessions = services?.GetService<ISessionTracker>();
         _ = sessions?.ResumeAsync();
-#if IOS || MACCATALYST
+#if IOS
         // Resuming after the timeout begins a new session.
         NativeCrashMarker.RememberSession(sessions?.Current);
 #endif

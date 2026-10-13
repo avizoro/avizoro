@@ -113,7 +113,7 @@
                 TextColor="White"
                 HorizontalOptions="Fill" />
 
-            <!-- Only shown on iOS and Mac Catalyst (see the code-behind). -->
+            <!-- Only shown on iOS (see the code-behind). -->
             <Button
                 x:Name="NativeExceptionBtn"
                 Text="Provocar NSException nativa"
