@@ -11,7 +11,7 @@ is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stabili
 
 ### Added
 
-- **Native crashes on iOS and Mac Catalyst** (`EnableNativeCrashCapture`, on by default). Uncaught
+- **Native crashes on iOS** (`EnableNativeCrashCapture`, on by default). Uncaught
   Objective-C exceptions (`NSException`) are captured with their name, reason and native stack. A fatal
   signal (`SIGABRT`, `SIGILL`, `SIGTRAP`, `SIGSYS`) leaves a marker and is reported on the next launch,
   dated at the crash and attached to the session it killed, which is closed as crashed; it has no stack
@@ -25,6 +25,12 @@ is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stabili
   on the matching `Microsoft.Extensions.*` / ASP.NET Core package line. `Avizoro.Maui` targets .NET 9
   and .NET 10 (the .NET 10 SDK can no longer build MAUI for .NET 8). The server and the dashboard
   still run on .NET 10.
+
+### Removed
+
+- **Mac Catalyst** is no longer a target of `Avizoro.Maui`. The package targets Android, iOS and
+  Windows; an app that also builds for `net*-maccatalyst` has to stay on `2.0.0` or exclude the
+  package from that target.
 
 ## [2.0.1] - 2026-10-12
 

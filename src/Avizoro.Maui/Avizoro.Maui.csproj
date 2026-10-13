@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst;net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks>net9.0-android;net9.0-ios;net10.0-android;net10.0-ios</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0;net10.0-windows10.0.19041.0</TargetFrameworks>
 
 		<UseMaui>true</UseMaui>
@@ -20,7 +20,6 @@
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
@@ -31,7 +30,7 @@
 		<IsPackable>true</IsPackable>
 		<PackageId>Avizoro.Maui</PackageId>
 		<Title>Avizoro for .NET MAUI</Title>
-		<Description>One-line, self-hosted crash reporting and observability for .NET MAUI (Android, iOS, Mac Catalyst, Windows) — a Sentry/App Center/Crashlytics alternative for the .NET ecosystem. Crash and ANR capture, sessions and crash-free rates, app start/page load/HTTP performance, offline store-and-forward, breadcrumbs, device context, PII scrubbing and opt-in last-screen capture, all via builder.UseAvizoro(dsn).</Description>
+		<Description>One-line, self-hosted crash reporting and observability for .NET MAUI (Android, iOS, Windows) — a Sentry/App Center/Crashlytics alternative for the .NET ecosystem. Crash and ANR capture, sessions and crash-free rates, app start/page load/HTTP performance, offline store-and-forward, breadcrumbs, device context, PII scrubbing and opt-in last-screen capture, all via builder.UseAvizoro(dsn).</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);CS1591</NoWarn>

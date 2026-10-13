@@ -9,7 +9,7 @@ namespace Sample.Maui
         // 10.0.2.2 is the Android emulator's alias for the host machine.
         private const string Dsn = "http://demo-key@10.0.2.2:7099/demo-maui";
 #else
-        // iOS simulator, Mac Catalyst and Windows reach the host directly.
+        // The iOS simulator and Windows reach the host directly.
         private const string Dsn = "http://demo-key@localhost:7099/demo-maui";
 #endif
 

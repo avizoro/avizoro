@@ -12,7 +12,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
 </p>
 
-Avizoro captures crashes, ANRs, logs, sessions and performance from your app, ships them to a backend you control, and shows them on a real-time dashboard with issue triage, release health and alerts. It works with **MAUI** (Android, iOS, Mac Catalyst, Windows), **ASP.NET Core**, **Blazor WebAssembly**, **WPF**, **WinForms**, **Avalonia** and plain console/worker apps. One line of setup, and no code at each capture site.
+Avizoro captures crashes, ANRs, logs, sessions and performance from your app, ships them to a backend you control, and shows them on a real-time dashboard with issue triage, release health and alerts. It works with **MAUI** (Android, iOS, Windows), **ASP.NET Core**, **Blazor WebAssembly**, **WPF**, **WinForms**, **Avalonia** and plain console/worker apps. One line of setup, and no code at each capture site.
 
 > Avizoro was previously published as **IntelligenceKit**. Upgrading from 1.x: see the [CHANGELOG](CHANGELOG.md).
 
@@ -38,7 +38,7 @@ The .NET/MAUI ecosystem lacks a lightweight, self-hostable crash + observability
 ## Features
 
 **Capture**
-- **Crashes** on Android (managed and Java), iOS, Mac Catalyst, Windows and desktop, written to a local queue and sent on the next launch. Handled exceptions and `ILogger` errors are captured too.
+- **Crashes** on Android (managed and Java), iOS, Windows and desktop, written to a local queue and sent on the next launch. Handled exceptions and `ILogger` errors are captured too.
 - **ANR detection**: a frozen UI thread is reported as `ApplicationNotResponding`.
 - **Sessions**: crash-free sessions and crash-free users, per release.
 - **Performance**: app start, page load, HTTP client and ASP.NET Core request timings (p50, p75, p95).
@@ -303,7 +303,7 @@ A project read key is presented the same way (`Authorization: Bearer <read-key>`
 
 ## Roadmap
 
-Shipped in `1.1.0`: issue lifecycle and regressions · alerts · sessions and crash-free rates · release health · ANR detection · symbolication · `BeforeSend`, sampling and PII scrubbing · performance monitoring · better grouping and backfill · `ILogger` provider · ASP.NET Core, Blazor, WPF, WinForms, Avalonia and generic-host SDKs · MAUI on Windows and Mac Catalyst · user feedback · search and filters · issue distributions · affected users · project management UI · export and GitHub/Jira issues · health checks and metrics · GHCR images and cloud templates · demo mode and documentation site.
+Shipped in `1.1.0`: issue lifecycle and regressions · alerts · sessions and crash-free rates · release health · ANR detection · symbolication · `BeforeSend`, sampling and PII scrubbing · performance monitoring · better grouping and backfill · `ILogger` provider · ASP.NET Core, Blazor, WPF, WinForms, Avalonia and generic-host SDKs · MAUI on Windows · user feedback · search and filters · issue distributions · affected users · project management UI · export and GitHub/Jira issues · health checks and metrics · GHCR images and cloud templates · demo mode and documentation site.
 
 Next:
 - [ ] Native iOS crash stack traces: dSYM symbolication, and `SIGSEGV`/`SIGBUS` (uncaught `NSException` is captured; other fatal signals are reported without a stack)

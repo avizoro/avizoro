@@ -22,7 +22,7 @@ Self-hosted crash reporting, performance monitoring and release health for .NET 
 
 | | |
 |---|---|
-| **Crashes and errors** | Fatal crashes on Android, iOS, Mac Catalyst and Windows, handled exceptions, `ILogger` errors and ANRs (a frozen UI thread), grouped into issues. |
+| **Crashes and errors** | Fatal crashes on Android, iOS and Windows, handled exceptions, `ILogger` errors and ANRs (a frozen UI thread), grouped into issues. |
 | **Issue workflow** | Resolve, ignore, assign and reopen issues. A resolved issue that comes back is flagged as a **regression**. |
 | **Release health** | Crash-free sessions and users per release, adoption, and the new issues each release introduced. |
 | **Performance** | App start, page load, HTTP client and ASP.NET Core request timings, with p50/p75/p95 per operation. |
