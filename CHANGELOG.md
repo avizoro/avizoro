@@ -9,6 +9,10 @@ is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stabili
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-13
+
+SDK packages: .NET 8 and 9 support, native crash capture on iOS, and Mac Catalyst is dropped.
+
 ### Added
 
 - **Native crashes on iOS** (`EnableNativeCrashCapture`, on by default). Uncaught
@@ -26,11 +30,18 @@ is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stabili
   and .NET 10 (the .NET 10 SDK can no longer build MAUI for .NET 8). The server and the dashboard
   still run on .NET 10.
 
+### Changed
+
+- iOS: an Objective-C exception that reaches managed code is reported under its own name
+  (`NSInvalidArgumentException`, …) with its native stack followed by the managed frames, instead of
+  the generic `ObjCRuntime.ObjCException`. Existing issues of that kind regroup under the new type.
+
 ### Removed
 
 - **Mac Catalyst** is no longer a target of `Avizoro.Maui`. The package targets Android, iOS and
   Windows; an app that also builds for `net*-maccatalyst` has to stay on `2.0.0` or exclude the
   package from that target.
+  This is a breaking change shipped in a minor release, as an exception to the versioning policy.
 
 ## [2.0.1] - 2026-10-12
 
@@ -230,6 +241,7 @@ First stable release. The API is now frozen under SemVer.
   store-and-forward, rich context, last-screen capture, multi-provider backend,
   real-time dashboard, read-side auth and issue grouping.
 
+[2.1.0]: https://github.com/avizoro/avizoro/releases/tag/v2.1.0
 [2.0.1]: https://github.com/avizoro/avizoro/releases/tag/v2.0.1
 [2.0.0]: https://github.com/avizoro/avizoro/releases/tag/v2.0.0
 [1.1.0]: https://github.com/avizoro/avizoro/releases/tag/v1.1.0

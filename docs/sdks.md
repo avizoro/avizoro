@@ -52,7 +52,7 @@ What the MAUI SDK captures:
 - **Session timeline** (opt-in): the whole session, not only what led to an error. Add a screenshot of the
   current screen with `IScreenCapture.CaptureToTimelineAsync()` (inject `IScreenCapture`).
 
-Android, iOS and Windows are supported. Crash capture on iOS covers managed exceptions and uncaught Objective-C exceptions (`NSException`, with its native stack). A fatal signal (`SIGABRT`, `SIGILL`, `SIGTRAP`, `SIGSYS`) is reported on the next launch without a stack trace; `SIGSEGV` and `SIGBUS` are not captured, because the .NET runtime owns them. Turn all of this off with `EnableNativeCrashCapture = false`.
+Android, iOS and Windows are supported. Crash capture on iOS covers managed exceptions and uncaught Objective-C exceptions (`NSException`, reported under its own name with its native stack). A fatal signal (`SIGABRT`, `SIGILL`, `SIGTRAP`, `SIGSYS`) is reported on the next launch without a stack trace; `SIGSEGV` and `SIGBUS` are not captured, because the .NET runtime owns them. Turn all of this off with `EnableNativeCrashCapture = false`.
 
 ## ASP.NET Core
 
