@@ -67,12 +67,28 @@ public unsafe partial class CrashReporter
 
     partial void OnFatalCaptured() => NativeCrashMarker.MarkReported();
 
+    partial void DescribePlatformException(Exception exception, ref ExceptionInfo? described)
+    {
+        // An Objective-C exception that crossed into managed code arrives wrapped in
+        // ObjCException. Report it under its own name (NSInvalidArgumentException, ...)
+        // so issues group by the native error, and keep the managed frames below
+        // the native stack.
+        if (exception is not ObjCException { NSException: { } native } wrapper)
+            return;
+
+        var info = FromNSException(native);
+        if (!string.IsNullOrEmpty(wrapper.StackTrace))
+            info.StackTrace = string.IsNullOrEmpty(info.StackTrace) ? wrapper.StackTrace : $"{info.StackTrace}\n{wrapper.StackTrace}";
+        info.Frames = StackFrameInfo.Capture(wrapper);
+        described = info;
+    }
+
     private void OnMarshalManagedException(object? sender, MarshalManagedExceptionEventArgs args)
     {
         // Persist synchronously (local write, fast) so the crash isn't lost if
         // the process is torn down right after. Deduped against the managed
         // AppDomain handler so the same crash isn't reported twice.
-        CaptureFatal(ExceptionInfo.FromException(args.Exception));
+        CaptureFatal(Describe(args.Exception));
     }
 
     private void OnMarshalObjectiveCException(object? sender, MarshalObjectiveCExceptionEventArgs args)

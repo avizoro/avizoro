@@ -80,7 +80,7 @@ public partial class CrashReporter : ICrashReporter
     {
         if (e.ExceptionObject is Exception ex)
         {
-            CaptureFatal(ExceptionInfo.FromException(ex));
+            CaptureFatal(Describe(ex));
         }
         // Do not swallow: the runtime proceeds to terminate as usual.
     }
@@ -94,10 +94,35 @@ public partial class CrashReporter : ICrashReporter
     }
 
     /// <summary>
+    /// Turns a fatal managed exception into the reported shape. A platform can
+    /// replace the default when the managed exception only wraps a native one.
+    /// </summary>
+    private ExceptionInfo Describe(Exception exception)
+    {
+        ExceptionInfo? described = null;
+        try
+        {
+            DescribePlatformException(exception, ref described);
+        }
+        catch
+        {
+            // Fall back to the managed description.
+        }
+
+        return described ?? ExceptionInfo.FromException(exception);
+    }
+
+    /// <summary>
     /// Implemented per platform under Platforms/. No-op on platforms that
     /// don't provide a platform-specific file.
     /// </summary>
     partial void RegisterPlatformHandlers();
+
+    /// <summary>
+    /// Lets a platform describe a managed exception that wraps a native one
+    /// (e.g. an Objective-C exception) by its native name, reason and stack.
+    /// </summary>
+    partial void DescribePlatformException(Exception exception, ref ExceptionInfo? described);
 
     /// <summary>
     /// Runs once, right before the first fatal crash is persisted. Lets a platform
