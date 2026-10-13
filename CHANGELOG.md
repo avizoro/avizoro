@@ -11,6 +11,14 @@ is what SemVer applies to (see [Versioning](README.md#versioning-and-api-stabili
 
 ### Added
 
+- **Native crashes on iOS and Mac Catalyst** (`EnableNativeCrashCapture`, on by default). Uncaught
+  Objective-C exceptions (`NSException`) are captured with their name, reason and native stack. A fatal
+  signal (`SIGABRT`, `SIGILL`, `SIGTRAP`, `SIGSYS`) leaves a marker and is reported on the next launch,
+  dated at the crash and attached to the session it killed, which is closed as crashed; it has no stack
+  trace. `SIGSEGV` and `SIGBUS` stay with the .NET runtime and are not captured. The handlers are not
+  installed while a debugger is attached.
+- `IAvizoro.CapturePreviousRunCrashAsync` and `ISessionTracker.CapturePreviousRunCrashAsync`, for
+  reporting a crash that could only leave a marker behind.
 - **.NET 8 and .NET 9 support** in the SDK packages. `Avizoro.Core`, `Avizoro.Hosting`,
   `Avizoro.Extensions.Logging`, `Avizoro.AspNetCore`, `Avizoro.Blazor`, `Avizoro.Avalonia`,
   `Avizoro.Wpf` and `Avizoro.WinForms` target `net8.0`, `net9.0` and `net10.0`; each target depends

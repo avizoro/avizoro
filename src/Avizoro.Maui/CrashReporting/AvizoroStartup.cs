@@ -26,7 +26,11 @@ internal sealed class AvizoroStartup : IMauiInitializeService
         services.GetRequiredService<ScreenCaptureService>().Start();
 
         // Begin the first session (only registered when auto session tracking is on).
-        _ = services.GetService<ISessionTracker>()?.StartAsync();
+        var sessions = services.GetService<ISessionTracker>();
+        _ = sessions?.StartAsync();
+#if IOS || MACCATALYST
+        NativeCrashMarker.RememberSession(sessions?.Current);
+#endif
 
         // Ask about last session's crash (no-op unless EnableCrashFeedbackPrompt).
         services.GetRequiredService<CrashFeedbackPrompt>().Start();

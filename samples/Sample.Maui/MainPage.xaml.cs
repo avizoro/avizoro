@@ -14,6 +14,10 @@ namespace Sample.Maui
         public MainPage()
         {
             InitializeComponent();
+#if IOS || MACCATALYST
+            NativeExceptionBtn.IsVisible = true;
+            NativeSignalBtn.IsVisible = true;
+#endif
         }
 
         private static IServiceProvider Services =>
@@ -153,6 +157,29 @@ namespace Sample.Maui
             // next launch.
             throw new Exception("Crash generado desde botón de prueba");
         }
+
+        private void OnNativeExceptionClicked(object? sender, EventArgs e)
+        {
+#if IOS || MACCATALYST
+            // The run loop performs a selector the object doesn't implement: an
+            // NSInvalidArgumentException raised by native code, not by this method.
+            new Foundation.NSObject().PerformSelector(new ObjCRuntime.Selector("avizoroMissingSelector"), null, 0.1);
+#endif
+        }
+
+        private void OnNativeSignalClicked(object? sender, EventArgs e)
+        {
+#if IOS || MACCATALYST
+            // No exception at all: the process just receives SIGABRT. Avizoro can only
+            // leave a marker, and reports the crash on the next launch.
+            abort();
+#endif
+        }
+
+#if IOS || MACCATALYST
+        [System.Runtime.InteropServices.DllImport("libc")]
+        private static extern void abort();
+#endif
 
         private async Task ShowQueueAsync(string action)
         {

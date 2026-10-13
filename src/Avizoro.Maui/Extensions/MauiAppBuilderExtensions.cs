@@ -149,7 +149,12 @@ public static class MauiAppBuilderExtensions
     private static void OnForeground()
     {
         var services = IPlatformApplication.Current?.Services;
-        _ = services?.GetService<ISessionTracker>()?.ResumeAsync();
+        var sessions = services?.GetService<ISessionTracker>();
+        _ = sessions?.ResumeAsync();
+#if IOS || MACCATALYST
+        // Resuming after the timeout begins a new session.
+        NativeCrashMarker.RememberSession(sessions?.Current);
+#endif
         services?.GetService<UiThreadWatchdog>()?.Start();
     }
 

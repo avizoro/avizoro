@@ -160,6 +160,28 @@ public sealed class SessionTracker : ISessionTracker
         return SendAsync(update, flush: false);
     }
 
+    public Task CapturePreviousRunCrashAsync(SessionInfo session)
+    {
+        var crashed = session.Clone();
+        crashed.Status = SessionStatus.Crashed;
+        crashed.Init = false;
+        // The snapshot may be older than the last update that run managed to send
+        // (e.g. the Exited sent when it went to the background), so jump well ahead.
+        crashed.Sequence += PreviousRunSequenceJump;
+
+        var update = new AvizoroEvent
+        {
+            EventType = EventType.Session,
+            Session = crashed,
+            UserId = _userId,
+            Timestamp = Now
+        };
+        EventContext.Stamp(update, _options, _device);
+        return SendAsync(update, flush: false);
+    }
+
+    private const long PreviousRunSequenceJump = 1000;
+
     /// <summary>Replaces the current session with a new one. Caller holds <see cref="_gate"/>.</summary>
     private AvizoroEvent BeginNewSession()
     {

@@ -1,3 +1,4 @@
+using Avizoro.Core.Configuration;
 using Avizoro.Core.Models;
 using Avizoro.Core.Services;
 
@@ -12,6 +13,7 @@ namespace Avizoro.Maui.CrashReporting;
 public partial class CrashReporter : ICrashReporter
 {
     private readonly IAvizoro _avizoro;
+    private readonly AvizoroOptions _options;
 
     // Latches the first fatal capture. A single fatal crash can surface through
     // more than one handler (managed AppDomain + the platform's native handler),
@@ -19,9 +21,10 @@ public partial class CrashReporter : ICrashReporter
     // one-shot latch for the process lifetime is safe.
     private int _fatalCaptured;
 
-    public CrashReporter(IAvizoro avizoro)
+    public CrashReporter(IAvizoro avizoro, AvizoroOptions options)
     {
         _avizoro = avizoro;
+        _options = options;
     }
 
     public void Register()
@@ -66,6 +69,7 @@ public partial class CrashReporter : ICrashReporter
         if (Interlocked.Exchange(ref _fatalCaptured, 1) != 0)
             return;
 
+        OnFatalCaptured();
         CaptureBlocking(exception);
 
         // Lets the next launch ask the user what happened (if enabled).
@@ -94,4 +98,10 @@ public partial class CrashReporter : ICrashReporter
     /// don't provide a platform-specific file.
     /// </summary>
     partial void RegisterPlatformHandlers();
+
+    /// <summary>
+    /// Runs once, right before the first fatal crash is persisted. Lets a platform
+    /// tell its lower-level handlers (e.g. signals) that this crash is already reported.
+    /// </summary>
+    partial void OnFatalCaptured();
 }

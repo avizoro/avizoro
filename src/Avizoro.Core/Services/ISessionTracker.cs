@@ -32,4 +32,10 @@ public interface ISessionTracker
     /// (called from crash handlers; it is uploaded on the next launch).
     /// </summary>
     Task CaptureCrashAsync();
+
+    /// <summary>
+    /// Closes a session from an earlier run as crashed, from the last snapshot the
+    /// SDK kept of it. Persist-only. Default implementation does nothing.
+    /// </summary>
+    Task CapturePreviousRunCrashAsync(SessionInfo session) => Task.CompletedTask;
 }

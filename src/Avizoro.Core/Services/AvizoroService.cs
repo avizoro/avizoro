@@ -251,6 +251,34 @@ public class AvizoroService : IAvizoro
         await CloseCrashedSessionAsync();
     }
 
+    public async Task CapturePreviousRunCrashAsync(ExceptionInfo exception, DateTime occurredAt, SessionInfo? session = null)
+    {
+        var avizoroEvent = BuildExceptionEvent(exception);
+        avizoroEvent.Timestamp = occurredAt;
+        avizoroEvent.SessionId = session?.SessionId;
+        Enrich(avizoroEvent);
+
+        // Same rules as a live crash: never sampled out, BeforeSend/scrubbing apply.
+        if (Process(avizoroEvent) is { } processed)
+        {
+            _lastEventId = processed.Id;
+            await _store.SaveAsync(processed);
+        }
+
+        // That run could not close its own session; the current one is untouched.
+        if (session is null || _sessions is null)
+            return;
+
+        try
+        {
+            await _sessions.CapturePreviousRunCrashAsync(session);
+        }
+        catch
+        {
+            // Release health is best-effort; the crash event is what matters.
+        }
+    }
+
     private async Task PersistTimelineAsync()
     {
         if (_timeline is null)

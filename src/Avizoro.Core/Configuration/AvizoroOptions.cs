@@ -87,6 +87,15 @@ public class AvizoroOptions
     public double SessionTimelineSampleRate { get; set; } = 1.0;
 
     /// <summary>
+    /// iOS and Mac Catalyst: also report crashes that never reach managed code. Uncaught
+    /// Objective-C exceptions (<c>NSException</c>) are captured with their native stack.
+    /// Fatal signals (<c>SIGABRT</c>, <c>SIGILL</c>, <c>SIGTRAP</c>, <c>SIGSYS</c>) only leave
+    /// a marker, and are reported on the next launch without a stack trace. Not installed
+    /// while a debugger is attached.
+    /// </summary>
+    public bool EnableNativeCrashCapture { get; set; } = true;
+
+    /// <summary>
     /// Report "Application Not Responding" when the UI thread is blocked for longer
     /// than <see cref="AnrThreshold"/>.
     /// </summary>
